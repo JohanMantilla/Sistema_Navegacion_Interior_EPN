@@ -1,0 +1,2 @@
+# Sistema-de-navegacion-con-realidad-aumentada-para-usuarios-con-deficiencia-visual
+Proyecto grupal de titulación para obtener el título de Ingeniero de Software. El presente proyecto busca ayudar a las personas con un grado de deficiencia visual moderado a navegar en el campus universitario de la Escuela Politecnica Nacional "Francisco Orellana". Se hará uso de múltiples herramientas, técnicas y realidad amentada.
