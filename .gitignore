@@ -62,6 +62,8 @@ Thumbs.db
 **/com.ptc.vuforia.engine*.tar.gz
 ProyectoTesis/Packages/com.ptc.vuforia.engine-*.tgz
 ProyectoTesis/Packages/com.ptc.vuforia.engine-*.tar.gz
+ProyectoTesis/Packages/com.ptc.vuforia.engine-11.2.4.tgz
+
 
 # Optional: Large media files (may need Git LFS instead)
 # *.tif
