@@ -57,6 +57,12 @@ Thumbs.db
 # Package manager files
 /[Pp]ackages/packages-lock.json
 
+# Vuforia Engine files (large packages)
+**/com.ptc.vuforia.engine*.tgz
+**/com.ptc.vuforia.engine*.tar.gz
+ProyectoTesis/Packages/com.ptc.vuforia.engine-*.tgz
+ProyectoTesis/Packages/com.ptc.vuforia.engine-*.tar.gz
+
 # Optional: Large media files (may need Git LFS instead)
 # *.tif
 # *.tiff
