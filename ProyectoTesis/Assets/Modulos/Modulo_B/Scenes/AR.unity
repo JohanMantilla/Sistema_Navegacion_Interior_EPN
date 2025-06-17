@@ -354,7 +354,7 @@ GameObject:
   - component: {fileID: 558673255}
   - component: {fileID: 558673254}
   m_Layer: 5
-  m_Name: Button (2)
+  m_Name: btnCameraAR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -476,7 +476,7 @@ GameObject:
   - component: {fileID: 655388737}
   - component: {fileID: 655388736}
   m_Layer: 5
-  m_Name: btnRouteAR
+  m_Name: btnRoute
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -595,6 +595,7 @@ GameObject:
   m_Component:
   - component: {fileID: 680815692}
   - component: {fileID: 680815691}
+  - component: {fileID: 680815693}
   m_Layer: 0
   m_Name: SceneManager
   m_TagString: Untagged
@@ -614,11 +615,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: f01ea1dcbe7d0024d92d18b534d3655c, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  btnSettingWelcome: {fileID: 0}
-  btnNextSettingsUI: {fileID: 0}
-  btnSettingNavigationUI: {fileID: 0}
-  btnCameraNavigationUI: {fileID: 0}
-  btnRouteAR: {fileID: 0}
 --- !u!4 &680815692
 Transform:
   m_ObjectHideFlags: 0
@@ -634,6 +630,18 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
+--- !u!114 &680815693
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 680815690}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c864ec1c468ec1d429e6e2d86b54f90f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
 --- !u!1 &869180993
 GameObject:
   m_ObjectHideFlags: 0
@@ -1240,8 +1248,8 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 4966719baa26e4b0e8231a24d9bd491a, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_FocusMode: 1
-  m_LightEstimationMode: 0
+  m_FocusMode: -1
+  m_LightEstimationMode: -1
   m_AutoFocus: 1
   m_ImageStabilization: 0
   m_LightEstimation: 0

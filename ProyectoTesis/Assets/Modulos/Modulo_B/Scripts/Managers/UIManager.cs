@@ -1,20 +1,13 @@
-using UnityEditor.Search;
+using System;
+using TMPro;
 using UnityEngine;
+using UnityEngine.PlayerLoop;
 using UnityEngine.Rendering;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
-
 public class UIManager : MonoBehaviour
 {
     private static UIManager instance;
-
-    [Header("Elementos UI")]
-    [SerializeField] private Button btnSettingWelcome;
-    [SerializeField] private Button btnNextSettingsUI;
-    [SerializeField] private Button btnSettingNavigationUI;
-    [SerializeField] private Button btnCameraNavigationUI;
-    [SerializeField] private Button btnRouteAR;
-
     public static UIManager Instance
     {
         get
@@ -32,7 +25,6 @@ public class UIManager : MonoBehaviour
             return instance;
         }
     }
-
     private void Awake()
     {
         if (instance == null)
@@ -45,107 +37,51 @@ public class UIManager : MonoBehaviour
             Destroy(gameObject);
         }
     }
-
     private void Start()
     {
         LoadInitialScene();
-        //LoadCurrentSceneUI();
     }
-
     private void OnEnable()
     {
-        SceneManager.sceneLoaded += OnCurrentScene;
+        //JsonDataManager.OnJsonRouteUpdated += UpdateUI;
+        //GPSManager.currentUserLocation += mostrarMensaje;
     }
-
     private void OnDisable()
     {
-        SceneManager.sceneLoaded -= OnCurrentScene;
+        //JsonDataManager.OnJsonRouteUpdated -= UpdateUI;
+        //GPSManager.currentUserLocation -= mostrarMensaje;
     }
-
-    private void OnCurrentScene(Scene scene, LoadSceneMode mode)
+    public void LoadInitialScene()
     {
-        LoadCurrentSceneUI();
-    }
-
-    private void LoadCurrentSceneUI()
-    {
-        string currentSceneName = SceneManager.GetActiveScene().name;
-
-        switch (currentSceneName)
+        if (!PlayerPrefs.HasKey("isFirstAppExecution"))
         {
-            case "WelcomeUI":
-                LoadWelcomeUI();
-                break;
-            case "SettingsUI":
-                LoadSettingsUI();
-                break;
-            case "NavigationUI":
-                LoadNavigationUI();
-                break;
-            case "AR":
-                LoadAR();
-                break;
-        }
-    }
-
-    private void LoadWelcomeUI()
-    {
-        btnSettingWelcome = GameObject.Find("btnSettingWelcome")?.GetComponent<Button>();
-
-        if (btnSettingWelcome != null)
-        {
-            btnSettingWelcome.onClick.AddListener(() => LoadScene("SettingsUI"));
-        }
-    }
-
-    private void LoadSettingsUI()
-    {
-        btnNextSettingsUI = GameObject.Find("btnNextSettingsUI")?.GetComponent<Button>();
-
-        if (btnNextSettingsUI != null)
-        {
-            btnNextSettingsUI.onClick.AddListener(() => LoadScene("NavigationUI"));
-        }
-    }
-
-    private void LoadNavigationUI()
-    {
-        btnSettingNavigationUI = GameObject.Find("btnSettingNavigationUI")?.GetComponent<Button>();
-        btnCameraNavigationUI = GameObject.Find("btnCameraNavigationUI")?.GetComponent<Button>();
-        if (btnSettingNavigationUI != null)
-        {
-            btnSettingNavigationUI.onClick.AddListener(() => LoadScene("SettingsUI"));
-            btnCameraNavigationUI.onClick.AddListener(()=>LoadScene("AR"));
-        }
-    }
-
-    private void LoadAR() {
-        btnRouteAR = GameObject.Find("btnRouteAR")?.GetComponent<Button>();
-        if (btnRouteAR != null) {
-            btnRouteAR.onClick.AddListener(()=>LoadScene("NavigationUI"));
-        }
-    }
-
-    public void LoadScene(string sceneName)
-    {
-        SceneManager.LoadScene(sceneName);
-    }
-
-    private void Update()
-    {
-
-    }
-
-    public void LoadInitialScene() {
-        if (!PlayerPrefs.HasKey("isFirstAppExecution")) {
             PlayerPrefs.SetInt("isFirstAppExecution", 1);
             PlayerPrefs.Save();
             LoadScene("WelcomeUI");
         }
-        else {
+        else
+        {
             LoadScene("NavigationUI");
         }
     }
-
-
+    private void LoadWelcomeUI()
+    {
+        SceneManager.LoadScene("WelcomeUI");
+    }
+    private void LoadSettingsUI()
+    {
+        SceneManager.LoadScene("SettingsUI");
+    }
+    public void LoadNavigationUI()
+    {
+        SceneManager.LoadScene("NavigationUI");
+    }
+    private void LoadAR()
+    {
+        SceneManager.LoadScene("AR");
+    }
+    public void LoadScene(string sceneName)
+    {
+        SceneManager.LoadScene(sceneName);
+    }
 }

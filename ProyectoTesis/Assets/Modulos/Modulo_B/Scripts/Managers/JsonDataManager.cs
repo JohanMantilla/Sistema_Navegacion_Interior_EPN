@@ -1,48 +1,108 @@
 using System;
 using System.Collections.Generic;
-using Mono.Cecil;
 using UnityEngine;
-
+using UnityEngine.SceneManagement;
+using Newtonsoft.Json;
+using System.IO;
+using System.Collections;
+using UnityEngine.UIElements;
+using UnityEngine.Networking;
 public class JsonDataManager : MonoBehaviour
 {
-    //public static event Action<Route> onLoadRouteData;
-    public static event Action<string> onFail;
-
-    //Tiempo de verificación 
-    //public float verificationTime = 3f;
-
-    //public Route route = new Route();
-   
-    //private DateTime lastUpdateTime;
-
-    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    private string routePath;
+    private string lastJsonRoute;
+    public static event Action<Route> OnJsonRouteUpdated;
+    private string objectDetectionPath;
+    private string lastJsonObjectDetection;
+    public static event Action<ObjectDetection>
+   OnChangeObjectionDetection;
     void Start()
     {
-        
-        LoadRouteData();
-        //LoadObjects();
+        StartCoroutine(CheckJsonRouteChanges());
+        StartCoroutine(CheckJsonObjectDetection());
     }
-
-    // Update is called once per frame
     void Update()
     {
-        
     }
-
-    void LoadRouteData() {
-
-        TextAsset archivoRoute = Resources.Load<TextAsset>("Data/route");
-
-        if (archivoRoute == null)
+    IEnumerator CheckJsonRouteChanges()
+    {
+        while (true)
         {
-            Debug.LogError("No se encontró el archivo JSON");
-            return;
+            yield return StartCoroutine(LoadRouteData());
+            yield return new WaitForSecondsRealtime(3f);
         }
-
-        Route routeJson = JsonUtility.FromJson<Route>(archivoRoute.text);
-        Debug.Log("Distancia: " + routeJson.route.total_distance_meters);
-
-
     }
-
+    IEnumerator LoadRouteData()
+    {
+        routePath = Path.Combine(Application.streamingAssetsPath,"route.json");
+        string fileRoutePath = routePath;
+        if (!fileRoutePath.Contains("://"))
+        {
+            Debug.Log("Error, no existe el archivo route.json");
+            fileRoutePath = "file://" + fileRoutePath;
+        }
+        using (UnityWebRequest request =
+       UnityWebRequest.Get(fileRoutePath))
+        {
+            yield return request.SendWebRequest();
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string newJsonData = request.downloadHandler.text;
+                if (newJsonData != null && newJsonData != lastJsonRoute)
+                {
+                    lastJsonRoute = newJsonData;
+                    DeserializeJsonRoute(newJsonData);
+                }
+            }
+            else
+            {
+                Debug.Log("Error");
+            }
+        }
+    }
+    void DeserializeJsonRoute(string routeJsonSerialized)
+    {
+        Route routeJson = JsonConvert.DeserializeObject<Route>(routeJsonSerialized);
+        OnJsonRouteUpdated?.Invoke(routeJson);
+    }
+    IEnumerator CheckJsonObjectDetection()
+    {
+        while (true)
+        {
+            yield return StartCoroutine(LoadObjectDetection());
+            yield return new WaitForSecondsRealtime(1f);
+        }
+    }
+    IEnumerator LoadObjectDetection()
+    {
+        objectDetectionPath = Path.Combine(Application.streamingAssetsPath, "objects.json");
+        string filePath = objectDetectionPath;
+        // En Android, necesitamos el prefijo jar:file://
+        if (!filePath.Contains("://"))
+        {
+            filePath = "file://" + filePath;
+        }
+        using (UnityWebRequest request = UnityWebRequest.Get(filePath))
+        {
+            yield return request.SendWebRequest();
+            if (request.result == UnityWebRequest.Result.Success)
+            {
+                string newJsonData = request.downloadHandler.text;
+                if (newJsonData != null && newJsonData != lastJsonObjectDetection)
+                {
+                    lastJsonObjectDetection = newJsonData;
+                    DeserializeJsonObjectDetection(newJsonData);
+                }
+            }
+            else
+            {
+                Debug.Log("Error al cargar objects.json: " + request.error);
+            }
+        }
+    }
+    void DeserializeJsonObjectDetection(string objectDetectionSerialized)
+    {
+        ObjectDetection objectDetection = JsonConvert.DeserializeObject<ObjectDetection>(objectDetectionSerialized);
+        OnChangeObjectionDetection?.Invoke(objectDetection);
+    }
 }
