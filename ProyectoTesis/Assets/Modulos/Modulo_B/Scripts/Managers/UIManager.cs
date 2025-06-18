@@ -63,6 +63,7 @@ public class UIManager : MonoBehaviour
         {
             LoadScene("NavigationUI");
         }
+        
     }
     private void LoadWelcomeUI()
     {

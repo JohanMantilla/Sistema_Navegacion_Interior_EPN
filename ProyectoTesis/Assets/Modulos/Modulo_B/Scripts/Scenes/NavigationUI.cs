@@ -26,6 +26,10 @@ public class NavigationUI : MonoBehaviour
         JsonDataManager.OnJsonRouteUpdated -= UpdateUI;
         ItemLocation.OnLocationChanged -= UpdateArrivalLocation;
     }
+    private void Start()
+    {
+        
+    }
     private void InitializeUIElements()
     {
         if (btnSettingNavigationUI == null)

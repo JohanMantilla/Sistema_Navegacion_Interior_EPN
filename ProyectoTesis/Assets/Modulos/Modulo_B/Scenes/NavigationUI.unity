@@ -1096,7 +1096,7 @@ MonoBehaviour:
   m_Content: {fileID: 1147936236}
   m_Horizontal: 0
   m_Vertical: 1
-  m_MovementType: 0
+  m_MovementType: 2
   m_Elasticity: 0.1
   m_Inertia: 0
   m_DecelerationRate: 0.135
@@ -1104,7 +1104,7 @@ MonoBehaviour:
   m_Viewport: {fileID: 264402650}
   m_HorizontalScrollbar: {fileID: 1124614838}
   m_VerticalScrollbar: {fileID: 952624268}
-  m_HorizontalScrollbarVisibility: 2
+  m_HorizontalScrollbarVisibility: 0
   m_VerticalScrollbarVisibility: 2
   m_HorizontalScrollbarSpacing: -3
   m_VerticalScrollbarSpacing: -3
@@ -1960,7 +1960,7 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: fee7729a5bb98ef4292b71381d8f7dd5, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  scrollViewEPNLocations: {fileID: 0}
+  scrollViewEPNLocations: {fileID: 438774834}
 --- !u!1 &839900180
 GameObject:
   m_ObjectHideFlags: 0
@@ -2345,9 +2345,9 @@ RectTransform:
   m_Father: {fileID: 438774835}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 1, y: 0}
-  m_AnchorMax: {x: 1, y: 0}
+  m_AnchorMax: {x: 1, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
-  m_SizeDelta: {x: 20, y: 0}
+  m_SizeDelta: {x: 20, y: -17}
   m_Pivot: {x: 1, y: 1}
 --- !u!114 &952624268
 MonoBehaviour:
@@ -2393,7 +2393,7 @@ MonoBehaviour:
   m_HandleRect: {fileID: 1677368854}
   m_Direction: 2
   m_Value: 1
-  m_Size: 0.7281251
+  m_Size: 0.78125006
   m_NumberOfSteps: 0
   m_OnValueChanged:
     m_PersistentCalls:
@@ -2485,7 +2485,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 1
+  m_IsActive: 0
 --- !u!224 &1124614837
 RectTransform:
   m_ObjectHideFlags: 0
@@ -3231,7 +3231,7 @@ RectTransform:
   m_Father: {fileID: 2125294521}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 0}
-  m_AnchorMax: {x: 0, y: 0}
+  m_AnchorMax: {x: 0.95769775, y: 1}
   m_AnchoredPosition: {x: 0, y: 0}
   m_SizeDelta: {x: 20, y: 20}
   m_Pivot: {x: 0.5, y: 0.5}
