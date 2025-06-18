@@ -36,19 +36,17 @@ public class ItemLocation : MonoBehaviour
         
         showConfirmationDialog();
         txtNameLocation.text = locationItemModel.nombre;
-        // 1.Condicional de acepta se envia el disparador, si no no. 
+        
         if (btnCheck != null)
         {
             btnCheck.onClick.RemoveAllListeners();
             btnCheck.onClick.AddListener(() => OnClickItem(locationItemModel));
-            //pnlDialog.SetActive(false); 
         }
 
         if (btnCancel != null)
         {
             btnCancel.onClick.RemoveAllListeners();
-            btnCancel.onClick.AddListener(() => pnlDialog.SetActive(false));
-            //pnlDialog.SetActive(false); 
+            btnCancel.onClick.AddListener(() => hiddenConfirmationDialog());
         }
 
         //OnLocationChanged?.Invoke(locationItemModel.nombre); 
@@ -56,14 +54,20 @@ public class ItemLocation : MonoBehaviour
 
     void OnClickItem(Location locationItemModel)
     {
+        Debug.Log("Entro a OnClicKItem : " + locationItemModel.nombre);
         OnLocationChanged?.Invoke(locationItemModel.nombre);
-        pnlDialog.SetActive(false);
+        hiddenConfirmationDialog();
     }
 
     void showConfirmationDialog()
     {
         pnlDialog.SetActive(true);
     }
+    private void hiddenConfirmationDialog()
+    {
+        pnlDialog.SetActive(false);
+    }
+
 
     void initializeElementsDialog()
     {
@@ -88,12 +92,6 @@ public class ItemLocation : MonoBehaviour
         }
 
 
-    }
-
-
-    bool ValidateClick(bool isClicked)
-    {
-        return isClicked;
     }
 
 
