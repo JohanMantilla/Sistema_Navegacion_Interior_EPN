@@ -1,10 +1,10 @@
 # ninja log v5
-44	3925	7719143471073150	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	bb7f9d17835c11be
-32	3958	7719143471444041	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	5da1faae45a6975e
-74	3984	7719143471599174	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	f7c831817221f7b3
-22	3993	7719143471905369	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	bca0be53baec0090
-1	4042	7719143472426300	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	30454733c6f7508b
-88	4192	7719143473992203	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	320519b6db22190
-57	4269	7719143474734296	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	a5f324fbce46d948
-12	4373	7719143475757902	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	92e19248050c4039
-4374	4613	7719143478198749	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/2rb4f1j6/obj/arm64-v8a/libgame.so	2fe9d995e1708048
+136	6882	7719765751616348	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	bb7f9d17835c11be
+266	6950	7719765752355698	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	f7c831817221f7b3
+178	6961	7719765752490418	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	5da1faae45a6975e
+1	6981	7719765752684056	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	bca0be53baec0090
+32	7122	7719765754127158	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	30454733c6f7508b
+221	7267	7719765755627198	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	320519b6db22190
+99	7403	7719765756983300	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	a5f324fbce46d948
+64	7491	7719765757798688	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	92e19248050c4039
+7492	7905	7719765761759974	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/2rb4f1j6/obj/arm64-v8a/libgame.so	2fe9d995e1708048

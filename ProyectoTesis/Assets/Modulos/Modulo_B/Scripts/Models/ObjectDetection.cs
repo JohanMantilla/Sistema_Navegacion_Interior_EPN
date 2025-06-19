@@ -14,10 +14,10 @@ public class Objects{
     public int object_id;
     [JsonProperty("class")]
     public string classes;
-    public double confidence;
-    public double[] bbox;
-    public double speed;
-    public double distance;
+    public float confidence;
+    public float[] bbox;
+    public float speed;
+    public float distance;
     //[JsonConverter(typeof(Direction))]
     public string direction;
 
@@ -29,16 +29,3 @@ public class Performance {
     public double cpu_usage;
     public double memory_usage;
 }
-
-/*
-public enum Direction { 
-    North,
-    South,
-    East,
-    West,
-    Northeast,
-    Northwest,
-    Southeast,
-    Southwest
-}
-*/
