@@ -3,19 +3,19 @@ using UnityEngine.XR.ARFoundation;
 using System.Collections.Generic;
 using TMPro;
 
-public class ARBBoxDetector : MonoBehaviour
+public class DrawBbox : MonoBehaviour
 {
     [Header("Referencias")]
     public ARCameraManager arCamera;
     public GameObject bboxPrefab; // GameObject con LineRenderer + TextMeshPro hijo
 
     [Header("Configuración")]
-    [SerializeField] private float textOffset = 0.8f; // Offset del texto respecto a la caja
-    [SerializeField] private float textMargin = 0.05f; // Margen dentro del bbox
-    [SerializeField] private bool textOutsideBox = false; // Opción para texto fuera de la caja
+    //[SerializeField] private float textOffset = 0.8f; // Offset del texto respecto a la caja
+    //[SerializeField] private float textMargin = 0.05f; // Margen dentro del bbox
+    //[SerializeField] private bool textOutsideBox = false; // Opción para texto fuera de la caja
 
     private List<GameObject> activeBBoxes = new List<GameObject>();
-    private bool hasProcessedFirstJson = false;
+    //private bool hasProcessedFirstJson = false;
 
     void Start()
     {
@@ -37,7 +37,7 @@ public class ARBBoxDetector : MonoBehaviour
     {
         if (detectionData != null)
         {
-            hasProcessedFirstJson = true;
+            //hasProcessedFirstJson = true;
             ProcessDetectionData(detectionData);
             Debug.Log($"Procesados {detectionData.objects?.Count ?? 0} objetos detectados");
         }
@@ -170,12 +170,6 @@ public class ARBBoxDetector : MonoBehaviour
     public int GetActiveBBoxCount()
     {
         return activeBBoxes.Count;
-    }
-
-    // Método para cambiar posición del texto en runtime
-    public void SetTextOutsideBox(bool outside)
-    {
-        textOutsideBox = outside;
     }
 
     // Método para debug - mostrar datos embebidos si no hay JSON
