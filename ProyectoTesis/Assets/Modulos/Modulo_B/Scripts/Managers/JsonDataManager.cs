@@ -14,8 +14,7 @@ public class JsonDataManager : MonoBehaviour
     public static event Action<Route> OnJsonRouteUpdated;
     private string objectDetectionPath;
     private string lastJsonObjectDetection;
-    public static event Action<ObjectDetection>
-   OnChangeObjectionDetection;
+    public static event Action<ObjectDetection>OnChangeObjectionDetection;
     void Start()
     {
         StartCoroutine(CheckJsonRouteChanges());
