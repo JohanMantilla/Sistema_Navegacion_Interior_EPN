@@ -3,9 +3,13 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Android;
+using System.Collections;
 
 public class SettingsUI : MonoBehaviour
 {
+    [SerializeField] private Button btnCameraPermission;
+    [SerializeField] private Button btnLocationPermission;
+
     [SerializeField] private Toggle tglVisualTypeSignal;
     [SerializeField] private Toggle tglAuditiveTypeSignal;
     [SerializeField] private Button btnNextSettingsUI;
@@ -17,9 +21,7 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Color minColor;
     [SerializeField] private Color maxColor;
     [SerializeField] private Slider slider;
-
-    [Header("Android Volume Control")]
-    [Tooltip("Habilita el control del volumen del sistema en Android")]
+    [SerializeField] private string message = "Pantalla de configuración";
     [SerializeField] private bool controlSystemVolume = true;
 
 
@@ -30,6 +32,10 @@ public class SettingsUI : MonoBehaviour
 
     private bool isInitialized = false;
     private AndroidJavaObject audioManager;
+
+    private bool isFirstClickCamaraPermission = false;
+    private bool isFirstClickLocationPermission = false;
+    private static bool hasPlayedWelcomeMessage = false;
 
     void Awake()
     {
@@ -52,13 +58,6 @@ public class SettingsUI : MonoBehaviour
                 AndroidJavaObject activityContext = activityClass.GetStatic<AndroidJavaObject>("currentActivity");
                 AndroidJavaClass audioManagerClass = new AndroidJavaClass("android.media.AudioManager");
                 audioManager = activityContext.Call<AndroidJavaObject>("getSystemService", "audio");
-                /*
-                // Solicitar permiso si es necesario
-                if (!Permission.HasUserAuthorizedPermission(Permission.Modi))
-                {
-                    Permission.RequestUserPermission(Permission.ModifyAudioSettings);
-                }
-                */
             }
             catch (Exception e)
             {
@@ -71,8 +70,49 @@ public class SettingsUI : MonoBehaviour
 
     void Start()
     {
+        StartCoroutine(WaitTTS());
         LoadAndApplyPreferences();
     }
+
+    IEnumerator WaitTTS()
+    {
+        float timeout = 10f; // Aumentar tiempo de espera
+        float elapsed = 0f;
+
+        // Esperar a que AndroidTTSManager esté disponible
+        while (AndroidTTSManager.Instance == null && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AndroidTTSManager.Instance == null)
+        {
+            Debug.LogWarning("AndroidTTSManager no está disponible");
+            yield break;
+        }
+
+        // Ahora esperar a que TTS se inicialice
+        elapsed = 0f;
+        while (!AndroidTTSManager.Instance.isInitialize && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AndroidTTSManager.Instance.isInitialize)
+        {
+            if (hasPlayedWelcomeMessage == false) {
+                AndroidTTSManager.Instance.Speak(message);
+                hasPlayedWelcomeMessage = true;
+            }
+        }
+        else
+        {
+            Debug.LogWarning("No se pudo inicializar TTS en el tiempo esperado");
+        }
+    }
+
 
     void OnEnable()
     {
@@ -96,10 +136,19 @@ public class SettingsUI : MonoBehaviour
     void AddListeners()
     {
         RemoveAllListeners();
-
+        //Este ya está
         if (btnNextSettingsUI != null)
         {
-            btnNextSettingsUI.onClick.AddListener(() => UIManager.Instance.LoadScene("NavigationUI"));
+            btnNextSettingsUI.onClick.AddListener(() => {
+                if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+                {
+                    AndroidTTSManager.Instance.Speak("Siguiente Pantalla");
+                    Invoke(nameof(LoadScene), 2.5f);
+                }
+                else {
+                    LoadScene();
+                }
+            });
         }
 
         if (tglVisualTypeSignal != null)
@@ -107,10 +156,12 @@ public class SettingsUI : MonoBehaviour
             tglVisualTypeSignal.onValueChanged.AddListener(OnVisualToggleChanged);
         }
 
+
         if (tglAuditiveTypeSignal != null)
         {
             tglAuditiveTypeSignal.onValueChanged.AddListener(OnAuditiveToggleChanged);
         }
+
 
         if (slider != null)
         {
@@ -124,6 +175,14 @@ public class SettingsUI : MonoBehaviour
         tglVisualTypeSignal?.onValueChanged.RemoveAllListeners();
         tglAuditiveTypeSignal?.onValueChanged.RemoveAllListeners();
         slider?.onValueChanged.RemoveAllListeners();
+    }
+
+    void LoadScene() {
+        if (AndroidTTSManager.Instance != null)
+        {
+            AndroidTTSManager.Instance.Stop();
+        }
+        UIManager.Instance.LoadScene("NavigationUI");
     }
 
     void LoadPlayerPreferences()
@@ -176,6 +235,16 @@ public class SettingsUI : MonoBehaviour
 
     void OnVisualToggleChanged(bool isOn)
     {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize) {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Señales visuales activas");
+            }
+            else {
+                AndroidTTSManager.Instance.Speak("Señales visuales desactivadas");
+            }
+        }
+
         onVisualActive?.Invoke(isOn);
         PlayerPrefs.SetInt("VisualTogglePreferences", isOn ? 1 : 0);
         PlayerPrefs.Save();
@@ -183,6 +252,17 @@ public class SettingsUI : MonoBehaviour
 
     void OnAuditiveToggleChanged(bool isOn)
     {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Señales de audio activas");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Señales de audio desactivadas");
+            }
+        }
         onAuditiveActive?.Invoke(isOn);
         PlayerPrefs.SetInt("AuditiveTogglePreferences", isOn ? 1 : 0);
         PlayerPrefs.Save();
@@ -194,8 +274,12 @@ public class SettingsUI : MonoBehaviour
 
         float percent = newVolume * 100f;
         onSliderVolumeChange?.Invoke(percent);
+        
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Volumen: " + Mathf.Round(percent).ToString());
+        }
 
-        // Guardar el volumen
         PlayerPrefs.SetFloat("VolumePreferences", newVolume);
         PlayerPrefs.Save();
 
@@ -213,6 +297,7 @@ public class SettingsUI : MonoBehaviour
                 Debug.LogWarning("Error al ajustar volumen del sistema: " + e.Message);
             }
         }
+
     }
 
     private void UpdateVolumeUI(float newVolume)
@@ -239,4 +324,15 @@ public class SettingsUI : MonoBehaviour
             fillAreaColor.color = Color.Lerp(minColor, maxColor, newVolume);
         }
     }
+
+    private void OnDestroy()
+    {
+        // Detener TTS si esta UI se destruye
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Stop();
+        }
+    }
+
+
 }

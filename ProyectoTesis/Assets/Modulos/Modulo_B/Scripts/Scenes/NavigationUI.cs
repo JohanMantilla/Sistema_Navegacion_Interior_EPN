@@ -12,6 +12,9 @@ public class NavigationUI : MonoBehaviour
     public GameObject scrollViewEPNLocations;
     private Button btnArrivalLocation;
     private TextMeshProUGUI txtArrivalLocation;
+
+    private string initialMessage = "Pantalla de navegación";
+
     void Awake()
     {
         InitializeUIElements();
@@ -28,7 +31,7 @@ public class NavigationUI : MonoBehaviour
     }
     private void Start()
     {
-        
+
     }
     private void InitializeUIElements()
     {

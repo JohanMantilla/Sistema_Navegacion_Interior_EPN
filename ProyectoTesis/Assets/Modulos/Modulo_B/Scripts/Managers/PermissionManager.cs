@@ -28,7 +28,6 @@ public class PermissionManager : MonoBehaviour
         changeSpritePermissionBarOnClick();
         btnCameraPermission.onClick.AddListener(updatedCameraPermissionOnClick);
         btnLocationPermission.onClick.AddListener(updatedLocationPermissionOnClick);
-
     }
 
     void Update()
@@ -39,18 +38,11 @@ public class PermissionManager : MonoBehaviour
     void changeSpritePermissionBarOnClick()
     {
         btnCamaraPermissionImage.sprite = cameraPermissionActivated ? spriteBarOn : spriteBarOff;
-        btnLocationPermissionImage.sprite = locationPermissionActivated ? spriteBarOn :spriteBarOff;
+        btnLocationPermissionImage.sprite = locationPermissionActivated ? spriteBarOn : spriteBarOff;
     }
-    
-    //modificar un poco
+
     void updatedCameraPermissionOnClick()
     {
-        /*
-        cameraPermissionActivated = !cameraPermissionActivated;
-        savePermissionStates();
-        changeSpritePermissionBarOnClick();
-        */
-
         if (!cameraPermissionActivated)
         {
             // Verificar si ya tiene el permiso
@@ -59,6 +51,12 @@ public class PermissionManager : MonoBehaviour
                 cameraPermissionActivated = true;
                 savePermissionStates();
                 changeSpritePermissionBarOnClick();
+
+                // TTS: Permiso otorgado
+                if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+                {
+                    AndroidTTSManager.Instance.Speak("Se dio permiso a la cámara");
+                }
             }
             else
             {
@@ -66,7 +64,6 @@ public class PermissionManager : MonoBehaviour
                 var callbacks = new PermissionCallbacks();
                 callbacks.PermissionGranted += OnCameraPermissionGranted;
                 callbacks.PermissionDenied += OnCameraPermissionDenied;
-
                 Permission.RequestUserPermission(Permission.Camera, callbacks);
             }
         }
@@ -75,14 +72,26 @@ public class PermissionManager : MonoBehaviour
             cameraPermissionActivated = false;
             savePermissionStates();
             changeSpritePermissionBarOnClick();
+
+            // TTS: Permiso desactivado
+            if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+            {
+                AndroidTTSManager.Instance.Speak("Se quitó permiso a la cámara");
+            }
         }
     }
-    //Cambiar nombres, sintaxis es la misma que use
+
     void OnCameraPermissionGranted(string permissionName)
     {
         cameraPermissionActivated = true;
         savePermissionStates();
         changeSpritePermissionBarOnClick();
+
+        // TTS: Permiso otorgado por el usuario
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Se dio permiso a la cámara");
+        }
     }
 
     void OnCameraPermissionDenied(string permissionName)
@@ -90,9 +99,14 @@ public class PermissionManager : MonoBehaviour
         cameraPermissionActivated = false;
         savePermissionStates();
         changeSpritePermissionBarOnClick();
+
+        // TTS: Permiso denegado
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Se denegó el permiso de cámara");
+        }
     }
 
-    //modificar un poco
     void updatedLocationPermissionOnClick()
     {
         if (!locationPermissionActivated)
@@ -103,6 +117,12 @@ public class PermissionManager : MonoBehaviour
                 locationPermissionActivated = true;
                 savePermissionStates();
                 changeSpritePermissionBarOnClick();
+
+                // TTS: Permiso otorgado
+                if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+                {
+                    AndroidTTSManager.Instance.Speak("Se dio permiso de ubicación");
+                }
             }
             else
             {
@@ -119,14 +139,26 @@ public class PermissionManager : MonoBehaviour
             locationPermissionActivated = false;
             savePermissionStates();
             changeSpritePermissionBarOnClick();
+
+            // TTS: Permiso desactivado
+            if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+            {
+                AndroidTTSManager.Instance.Speak("Se quitó permiso de ubicación");
+            }
         }
     }
-    //Cambiar nombres, sintaxis es la misma que use
+
     void OnLocationPermissionGranted(string permissionName)
     {
         locationPermissionActivated = true;
         savePermissionStates();
         changeSpritePermissionBarOnClick();
+
+        // TTS: Permiso otorgado por el usuario
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Se dio permiso de ubicación");
+        }
     }
 
     void OnLocationPermissionDenied(string permissionName)
@@ -134,10 +166,13 @@ public class PermissionManager : MonoBehaviour
         locationPermissionActivated = false;
         savePermissionStates();
         changeSpritePermissionBarOnClick();
+
+        // TTS: Permiso denegado
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Se denegó el permiso de ubicación");
+        }
     }
-
-
-
 
     void savePermissionStates()
     {
@@ -148,11 +183,6 @@ public class PermissionManager : MonoBehaviour
 
     void loadUserPermissionPrefs()
     {
-        /*
-        cameraPermissionActivated = PlayerPrefs.GetInt("CameraPermission", 0) == 1;
-        locationPermissionActivated = PlayerPrefs.GetInt("LocationPermission", 0) == 1;
-        */
-
         // Para cámara: verificar tanto las preferencias guardadas como el permiso real
         bool savedCameraPermission = PlayerPrefs.GetInt("CameraPermission", 0) == 1;
         bool hasRealCameraPermission = Permission.HasUserAuthorizedPermission(Permission.Camera);
@@ -165,8 +195,4 @@ public class PermissionManager : MonoBehaviour
     public bool isCameraPermissionActivated() { return cameraPermissionActivated; }
 
     public bool isLocationPermissionActivated() { return locationPermissionActivated; }
-
-
-
-
 }
