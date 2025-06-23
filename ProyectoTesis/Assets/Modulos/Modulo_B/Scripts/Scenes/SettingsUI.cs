@@ -4,6 +4,7 @@ using UnityEngine;
 using UnityEngine.UI;
 using UnityEngine.Android;
 using System.Collections;
+using UnityEngine.SceneManagement;
 
 public class SettingsUI : MonoBehaviour
 {
@@ -100,12 +101,9 @@ public class SettingsUI : MonoBehaviour
             yield return null;
         }
 
-        if (AndroidTTSManager.Instance.isInitialize)
+        if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "SettingsUI")
         {
-            if (hasPlayedWelcomeMessage == false) {
-                AndroidTTSManager.Instance.Speak(message);
-                hasPlayedWelcomeMessage = true;
-            }
+            AndroidTTSManager.Instance.Speak(message);
         }
         else
         {

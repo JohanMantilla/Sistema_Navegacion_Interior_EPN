@@ -16,6 +16,7 @@ public class DrawBbox : MonoBehaviour
 
     private List<GameObject> activeBBoxes = new List<GameObject>();
     //private bool hasProcessedFirstJson = false;
+    public AudioManager audioManager;
 
     void Start()
     {
@@ -65,6 +66,12 @@ public class DrawBbox : MonoBehaviour
                     obj
                 );
             }
+
+            if (obj.distance <= 5 && obj.classes == "person") {
+                audioManager.PlayAudio();
+            }
+
+
         }
     }
 

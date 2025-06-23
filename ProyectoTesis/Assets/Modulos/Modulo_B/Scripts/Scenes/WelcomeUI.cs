@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 public class WelcomeUI : MonoBehaviour
 {
@@ -47,7 +48,7 @@ public class WelcomeUI : MonoBehaviour
             yield return null;
         }
 
-        if (AndroidTTSManager.Instance.isInitialize)
+        if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "WelcomeUI")
         {
             AndroidTTSManager.Instance.Speak(message);
         }

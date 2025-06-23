@@ -1,6 +1,7 @@
 using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 public class NavigationUI : MonoBehaviour
 {
@@ -13,7 +14,11 @@ public class NavigationUI : MonoBehaviour
     private Button btnArrivalLocation;
     private TextMeshProUGUI txtArrivalLocation;
 
-    private string initialMessage = "Pantalla de navegación";
+    [SerializeField] private GameObject pnlConfirmationDialog;
+    // Variable estática para controlar si ya se reprodujo el mensaje
+
+    private static bool welcomeMessagePlayed = false;
+    private string message = "Bienvenido a la pantalla de navegación. Aquí puedes explorar las rutas disponibles dentro de la Escuela Politécnica Nacional.";
 
     void Awake()
     {
@@ -31,8 +36,53 @@ public class NavigationUI : MonoBehaviour
     }
     private void Start()
     {
-
+        // Limpiar cualquier texto pendiente del TTS antes de empezar
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Stop(); // Detener y limpiar cola
+        }
+        
+        StartCoroutine(WaitTTS());
     }
+
+    IEnumerator WaitTTS() {
+        float timeout = 10f; // Aumentar tiempo de espera
+        float elapsed = 0f;
+
+        // Esperar a que AndroidTTSManager esté disponible
+        while (AndroidTTSManager.Instance == null && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AndroidTTSManager.Instance == null)
+        {
+            Debug.LogWarning("AndroidTTSManager no está disponible");
+            yield break;
+        }
+
+        // Ahora esperar a que TTS se inicialice
+        elapsed = 0f;
+        while (!AndroidTTSManager.Instance.isInitialize && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "NavigationUI")
+        {
+            AndroidTTSManager.Instance.Speak(message);
+            // Marcar que el mensaje ya se reprodujo
+            welcomeMessagePlayed = true;
+
+        }
+        else
+        {
+            Debug.LogWarning("No se pudo inicializar TTS en el tiempo esperado");
+        }
+    }
+
     private void InitializeUIElements()
     {
         if (btnSettingNavigationUI == null)
@@ -70,7 +120,17 @@ public class NavigationUI : MonoBehaviour
         if (btnCameraNavigationUI != null)
         {
             btnCameraNavigationUI.onClick.RemoveAllListeners();
-            btnCameraNavigationUI.onClick.AddListener(() => UIManager.Instance.LoadScene("AR"));
+            btnCameraNavigationUI.onClick.AddListener(() => {
+                if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize && welcomeMessagePlayed)
+                {
+                    AndroidTTSManager.Instance.Speak("Camará");
+                    Invoke(nameof(LoadScene), 2.9f);
+                }
+                else {
+                    LoadScene();
+                }
+               
+            });
         }
         if (btnArrivalLocation != null)
         {
@@ -78,6 +138,15 @@ public class NavigationUI : MonoBehaviour
             btnArrivalLocation.onClick.AddListener(ShowOrHiddenLocations);
         }
     }
+
+    void LoadScene() {
+        if (AndroidTTSManager.Instance != null)
+        {
+            AndroidTTSManager.Instance.Stop();
+        }
+        UIManager.Instance.LoadScene("AR");
+    }
+
     void UpdateUI(Route routeData)
     {
         InitializeUIElements();
@@ -98,7 +167,17 @@ public class NavigationUI : MonoBehaviour
     {
         if (scrollViewEPNLocations != null)
         {
+            if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize && welcomeMessagePlayed && scrollViewEPNLocations.activeSelf) {
+                AndroidTTSManager.Instance.Speak("Ubicación de destino activada");
+            }
             scrollViewEPNLocations.SetActive(!scrollViewEPNLocations.activeSelf);
         }
     }
+
+    // Método opcional para resetear el estado del mensaje (por ejemplo, cuando se reinicia la aplicación)
+    public static void ResetWelcomeMessage()
+    {
+        welcomeMessagePlayed = false;
+    }
+
 }

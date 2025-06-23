@@ -1,10 +1,10 @@
 # ninja log v5
-32	12306	7722422575608161	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	54b9ba22c79d3bcc
-215	12334	7722422575225547	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	104bf015dab5f
-146	12356	7722422575005068	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	8c3348e6e1ee146
-1	12663	7722422578097344	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	6f1a2523603d0c0
-173	12713	7722422578955446	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	5fefe5daf724a2c8
-269	13415	7722422586278738	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	f77f8e74c5b08d49
-95	13670	7722422588861466	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	dc0133dc6e16e6da
-61	13772	7722422590199887	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	331ae5501ae62a88
-13773	14234	7722422594906009	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/2e383v3s/obj/arm64-v8a/libgame.so	5d0350dbfdf953b1
+54	8039	7723420478406368	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	6f1a2523603d0c0
+126	8135	7723420479061215	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	5fefe5daf724a2c8
+175	8146	7723420479495086	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	8c3348e6e1ee146
+3	8161	7723420479535752	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	54b9ba22c79d3bcc
+339	8288	7723420481334507	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	104bf015dab5f
+273	8407	7723420482559171	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	f77f8e74c5b08d49
+227	8533	7723420483859629	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	dc0133dc6e16e6da
+89	8629	7723420484841359	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	331ae5501ae62a88
+8630	8852	7723420487039018	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/2e383v3s/obj/arm64-v8a/libgame.so	5d0350dbfdf953b1

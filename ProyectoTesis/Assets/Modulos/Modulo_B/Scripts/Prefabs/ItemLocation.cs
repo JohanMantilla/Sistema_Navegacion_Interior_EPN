@@ -1,6 +1,8 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
+using UnityEngine.SceneManagement;
 using UnityEngine.UI;
 
 public class ItemLocation : MonoBehaviour
@@ -15,6 +17,8 @@ public class ItemLocation : MonoBehaviour
     public Button btnCheck;
     public Button btnCancel;
 
+    private const string PERSISTENT_LOCATION = "Persistence_Location"; 
+
     void Awake()
     {
         //initializeElementsDialog();
@@ -23,6 +27,35 @@ public class ItemLocation : MonoBehaviour
     void Start()
     {
         pnlDialog.SetActive(false);
+        StartCoroutine(WaitTTS());
+    }
+
+    IEnumerator WaitTTS()
+    {
+        float timeout = 10f; // Aumentar tiempo de espera
+        float elapsed = 0f;
+
+        // Esperar a que AndroidTTSManager esté disponible
+        while (AndroidTTSManager.Instance == null && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
+        if (AndroidTTSManager.Instance == null)
+        {
+            Debug.LogWarning("AndroidTTSManager no está disponible");
+            yield break;
+        }
+
+        // Ahora esperar a que TTS se inicialice
+        elapsed = 0f;
+        while (!AndroidTTSManager.Instance.isInitialize && elapsed < timeout)
+        {
+            elapsed += Time.deltaTime;
+            yield return null;
+        }
+
     }
 
     public void SetElement(Location locationItemModel)
@@ -33,8 +66,11 @@ public class ItemLocation : MonoBehaviour
 
     public void SelectedItem(Location locationItemModel)
     {
-        
-        showConfirmationDialog();
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Has seleccionado: " + locationItemModel.nombre);
+        }
+        Invoke(nameof(showConfirmationDialog), 0.5f);
         txtNameLocation.text = locationItemModel.nombre;
         
         if (btnCheck != null)
@@ -46,7 +82,7 @@ public class ItemLocation : MonoBehaviour
         if (btnCancel != null)
         {
             btnCancel.onClick.RemoveAllListeners();
-            btnCancel.onClick.AddListener(() => hiddenConfirmationDialog());
+            btnCancel.onClick.AddListener(() => OnCancelled());
         }
 
         //OnLocationChanged?.Invoke(locationItemModel.nombre); 
@@ -55,9 +91,14 @@ public class ItemLocation : MonoBehaviour
     void OnClickItem(Location locationItemModel)
     {
         Debug.Log("Entro a OnClicKItem : " + locationItemModel.nombre);
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize) {
+            AndroidTTSManager.Instance.Speak("Confirmado");
+        }
         OnLocationChanged?.Invoke(locationItemModel.nombre);
-        hiddenConfirmationDialog();
+        
+        Invoke(nameof(hiddenConfirmationDialog), 0.5f);
     }
+
 
     void showConfirmationDialog()
     {
@@ -68,6 +109,13 @@ public class ItemLocation : MonoBehaviour
         pnlDialog.SetActive(false);
     }
 
+    private void OnCancelled() {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            AndroidTTSManager.Instance.Speak("Cancelado");
+        }
+        Invoke(nameof(hiddenConfirmationDialog), 0.5f);
+    }
 
     void initializeElementsDialog()
     {
