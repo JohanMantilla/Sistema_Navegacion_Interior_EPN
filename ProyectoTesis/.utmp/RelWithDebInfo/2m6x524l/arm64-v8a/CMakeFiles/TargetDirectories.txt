@@ -1,0 +1,5 @@
+C:/Users/HP/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/RelWithDebInfo/2m6x524l/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/HP/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/RelWithDebInfo/2m6x524l/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/HP/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/RelWithDebInfo/2m6x524l/arm64-v8a/GameActivity/CMakeFiles/game.dir
+C:/Users/HP/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/RelWithDebInfo/2m6x524l/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+C:/Users/HP/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/RelWithDebInfo/2m6x524l/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir

@@ -1,0 +1,55 @@
+{
+ "route": {
+ "start": {
+ "latitude": -0.123456,
+ "longitude": -78.987654,
+ "altitude": 2800
+ },
+ "end": {
+ "latitude": -0.123400,
+ "longitude": -78.987600,
+ "altitude": 2797
+ },
+ "waypoints": [
+ {
+ "type": "walk",
+ "distance_meters": 10,
+ "steps": 40,
+ "elevation_change": 0
+ },
+ {
+ "type": "stairs_down",
+ "num_steps": 15,
+ "step_height_meters": 0.10,
+ "step_width_meters": 0.50,
+ "step_length_meters": 2.00,
+ "elevation_change": -1.5,
+ "distance_meters": 3
+ },
+ {
+ "type": "turn",
+ "direction": "right",
+ "distance_meters": 0,
+ "steps": 0,
+ "elevation_change": 0
+ },
+ {
+ "type": "stairs_down",
+ "num_steps": 15,
+ "step_height_meters": 0.10,
+ "step_width_meters": 0.50,
+ "step_length_meters": 2.00,
+ "elevation_change": -1.5,
+ "distance_meters": 3
+ },
+ {
+ "type": "walk",
+ "distance_meters": 10,
+ "steps": 40,
+ "elevation_change": 0
+ }
+ ],
+ "total_distance_meters": 26,
+ "total_steps": 60
+ }
+}
