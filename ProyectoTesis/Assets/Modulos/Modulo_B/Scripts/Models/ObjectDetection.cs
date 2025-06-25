@@ -13,12 +13,11 @@ public class ObjectDetection
 public class Objects{ 
     public int object_id;
     [JsonProperty("class")]
-    public string classes;
+    public string name;
     public float confidence;
     public float[] bbox;
     public float speed;
     public float distance;
-    //[JsonConverter(typeof(Direction))]
     public string direction;
 
 }

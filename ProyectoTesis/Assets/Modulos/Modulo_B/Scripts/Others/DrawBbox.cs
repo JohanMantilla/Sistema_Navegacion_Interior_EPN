@@ -10,20 +10,18 @@ public class DrawBbox : MonoBehaviour
     public GameObject bboxPrefab; // GameObject con LineRenderer + TextMeshPro hijo
 
     [Header("Configuración")]
-    //[SerializeField] private float textOffset = 0.8f; // Offset del texto respecto a la caja
-    //[SerializeField] private float textMargin = 0.05f; // Margen dentro del bbox
-    //[SerializeField] private bool textOutsideBox = false; // Opción para texto fuera de la caja
+    [SerializeField] private float baseTextSize = 0.03f; // Tamaño base del texto (más pequeño)
+    [SerializeField] private float minTextSize = 0.02f; // Tamaño mínimo del texto
+    [SerializeField] private float maxTextSize = 0.08f; // Tamaño máximo del texto (más controlado)
+    [SerializeField] private float distanceScaleFactor = 1.5f; // Factor de escala basado en distancia
+    [SerializeField] private float maxDistance = 20f; // Distancia máxima para el cálculo de escala
 
     private List<GameObject> activeBBoxes = new List<GameObject>();
-    //private bool hasProcessedFirstJson = false;
-    public AudioManager audioManager;
 
     void Start()
     {
         // Suscribirse al evento del JsonDataManager
         JsonDataManager.OnChangeObjectionDetection += OnObjectDetectionUpdated;
-
-        // NO procesar datos embebidos aquí, esperar al primer JSON
         Debug.Log("ARBBoxDetector iniciado, esperando primer JSON...");
     }
 
@@ -38,7 +36,6 @@ public class DrawBbox : MonoBehaviour
     {
         if (detectionData != null)
         {
-            //hasProcessedFirstJson = true;
             ProcessDetectionData(detectionData);
             Debug.Log($"Procesados {detectionData.objects?.Count ?? 0} objetos detectados");
         }
@@ -58,44 +55,58 @@ public class DrawBbox : MonoBehaviour
         {
             if (obj.bbox != null && obj.bbox.Length == 4)
             {
-                DrawBoundingBox(
-                    new Vector2(obj.bbox[0], obj.bbox[1]), // min
-                    new Vector2(obj.bbox[2], obj.bbox[3]), // max
-                    obj.distance,
-                    GetClassColor(obj.classes),
-                    obj
-                );
+                DrawBoundingBox(obj);
             }
 
-            if (obj.distance <= 5 && obj.classes == "person") {
-                audioManager.PlayAudio();
+            // Lógica adicional para personas cercanas
+            if (obj.distance <= 5 && obj.name == "person")
+            {
+                // Aquí puedes agregar lógica específica para personas cercanas
             }
-
-
         }
     }
 
-    void DrawBoundingBox(Vector2 bboxMin, Vector2 bboxMax, float distance, Color color, Objects objData)
+    void DrawBoundingBox(Objects objData)
     {
         if (bboxPrefab == null || arCamera == null) return;
 
-        // Convertir coordenadas de pantalla a Viewport
-        Vector2 minViewport = ScreenToViewport(bboxMin);
-        Vector2 maxViewport = ScreenToViewport(bboxMax);
-
-        // Calcular esquinas de la caja en orden correcto
         Camera cam = arCamera.GetComponent<Camera>();
+        if (cam == null) return;
+
+        // YOLOv8 bbox format: [x_min, y_min, x_max, y_max] en coordenadas de píxeles
+        float xMin = objData.bbox[0];
+        float yMin = objData.bbox[1];
+        float xMax = objData.bbox[2];
+        float yMax = objData.bbox[3];
+
+        // Convertir coordenadas de píxeles a coordenadas de viewport (0-1)
+        // En Unity, el viewport tiene (0,0) en bottom-left, pero YOLOv8 tiene (0,0) en top-left
+        Vector2 minViewport = new Vector2(
+            xMin / Screen.width,
+            1f - (yMax / Screen.height) // Invertir Y y usar yMax para bottom
+        );
+
+        Vector2 maxViewport = new Vector2(
+            xMax / Screen.width,
+            1f - (yMin / Screen.height) // Invertir Y y usar yMin para top
+        );
+
+        // Definir la distancia de proyección en el mundo 3D
+        float projectionDistance = objData.distance;
+
+        // Calcular las 4 esquinas del bounding box en coordenadas del mundo
         Vector3[] corners = new Vector3[5];
 
-        // Orden: bottomLeft, bottomRight, topRight, topLeft, bottomLeft (para cerrar)
-        corners[0] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, minViewport.y, distance)); // TopLeft
-        corners[1] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, minViewport.y, distance)); // TopRight
-        corners[2] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, maxViewport.y, distance)); // ButtonRight
-        corners[3] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, maxViewport.y, distance)); // topLeft
-        corners[4] = corners[0]; // Cerrar el rectangulo
+        // Esquinas en orden: bottom-left, bottom-right, top-right, top-left, bottom-left (para cerrar)
+        corners[0] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, minViewport.y, projectionDistance)); // Bottom-left
+        corners[1] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, minViewport.y, projectionDistance)); // Bottom-right
+        corners[2] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, maxViewport.y, projectionDistance)); // Top-right
+        corners[3] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, maxViewport.y, projectionDistance)); // Top-left
+        corners[4] = corners[0]; // Cerrar el rectángulo
 
         // Instanciar el prefab de la caja
-        GameObject bbox = Instantiate(bboxPrefab, corners[0], Quaternion.identity);
+        Vector3 centerPosition = (corners[0] + corners[2]) * 0.5f; // Centro del bounding box
+        GameObject bbox = Instantiate(bboxPrefab, centerPosition, Quaternion.identity);
 
         // Configurar el LineRenderer
         LineRenderer line = bbox.GetComponent<LineRenderer>();
@@ -103,52 +114,94 @@ public class DrawBbox : MonoBehaviour
         {
             line.positionCount = corners.Length;
             line.SetPositions(corners);
-            line.startColor = color;
-            line.endColor = color;
+
+            Color classColor = GetClassColor(objData.name);
+            line.startColor = classColor;
+            line.endColor = classColor;
+
+            // Configurar propiedades del LineRenderer para mejor visualización
+            line.useWorldSpace = true;
+            line.material = line.material; // Asegurar que tiene un material
         }
 
         // Configurar el TextMeshPro hijo
         TextMeshPro textInfo = bbox.GetComponentInChildren<TextMeshPro>();
         if (textInfo != null)
         {
-            textInfo.text = $"Class: {objData.classes}\n" +
-                           $"Speed: {objData.speed:F1} m/s\n" +
-                           $"Dist: {objData.distance:F1} m";
+            // Formatear el texto en una sola línea con separadores
+            textInfo.text = $"{objData.name} ({objData.confidence:F2})\n" +
+                $"Speed: {objData.speed:F1}m/s\n" +
+                $"Distance: {objData.distance:F1}m";
 
-           
-           
-            // Calcular posición del texto
-            Vector3 textPosition = corners[0];
+            // Posicionar el texto ligeramente arriba del bounding box
+            Vector3 textOffset = new Vector3(0.01f, -0.02f, 0); // Pequeño offset hacia arriba
+            Vector3 textPosition = corners[3] + textOffset; // Top-left corner + offset
             textInfo.transform.position = textPosition;
-            
 
+            // Hacer que el texto mire hacia la cámara
+            Vector3 directionToCamera = arCamera.transform.position - textInfo.transform.position;
+            textInfo.transform.rotation = Quaternion.LookRotation(-directionToCamera);
 
-            // Hacer que el texto mire a la cámara
-            textInfo.transform.LookAt(arCamera.transform);
-            textInfo.transform.Rotate(0, 180, 0); // Voltear para legibilidad
+            // Configurar el color del texto igual que la clase
+            Color classColor = GetClassColor(objData.name);
+            textInfo.color = classColor;
+
+            // Escalar el texto basado en la distancia para que sea proporcional
+            float textScale = CalculateTextScale(objData.distance);
+            textInfo.transform.localScale = Vector3.one * textScale;
+
+            // Configurar propiedades del texto para una sola línea
+            textInfo.fontSize = 5; // Tamaño base de fuente
+            textInfo.fontSizeMin = 2;
+            textInfo.fontSizeMax = 10;
+            textInfo.enableAutoSizing = true;
+            textInfo.overflowMode = TextOverflowModes.Overflow; // Permitir que el texto se extienda
+            textInfo.enableWordWrapping = false; // Desactivar wrap para mantener en una línea
+            textInfo.alignment = TextAlignmentOptions.Left; // Alinear a la izquierda
         }
 
         activeBBoxes.Add(bbox);
     }
 
-    Vector2 ScreenToViewport(Vector2 screenPos)
+    // Calcular el tamaño del texto basado en la distancia
+    float CalculateTextScale(float distance)
     {
-        return new Vector2(
-            screenPos.x / Screen.width,
-            1f - (screenPos.y / Screen.height) // Invertir Y para coordenadas de pantalla
-        );
+        // Normalizar la distancia entre 0 y 1 basado en maxDistance
+        float normalizedDistance = Mathf.Clamp01(distance / maxDistance);
+
+        // Aplicar una curva logarítmica para evitar que sea demasiado grande cuando está cerca
+        float scaleFactor = Mathf.Log(1 + normalizedDistance * distanceScaleFactor) / Mathf.Log(1 + distanceScaleFactor);
+
+        // Interpolar entre el tamaño mínimo y máximo
+        float scale = Mathf.Lerp(minTextSize, maxTextSize, scaleFactor);
+
+        // Para objetos muy cercanos (menos de 2m), aplicar una reducción adicional
+        if (distance < 2f)
+        {
+            float closeReduction = Mathf.Clamp01(distance / 2f); // 0 cuando está a 0m, 1 cuando está a 2m
+            scale *= (0.5f + 0.5f * closeReduction); // Reducir entre 50% y 100%
+        }
+
+        return scale;
     }
 
+    // Obtener color basado en la clase del objeto (igual que YOLOv8)
     Color GetClassColor(string className)
     {
         switch (className?.ToLower())
         {
-            case "person": return Color.yellow;
-            case "car": return Color.red;
-            case "bicycle": return Color.green;
-            case "dog": return Color.cyan;
-            case "cat": return Color.magenta;
-            default: return Color.white;
+            case "person": return new Color(1f, 1f, 0f, 0.8f);        // Amarillo
+            case "car": return new Color(1f, 0f, 0f, 0.8f);           // Rojo
+            case "bicycle": return new Color(0f, 1f, 0f, 0.8f);       // Verde
+            case "motorcycle": return new Color(1f, 0.5f, 0f, 0.8f);  // Naranja
+            case "bus": return new Color(0f, 0f, 1f, 0.8f);           // Azul
+            case "truck": return new Color(0.5f, 0f, 0.5f, 0.8f);     // Púrpura
+            case "dog": return new Color(0f, 1f, 1f, 0.8f);           // Cian
+            case "cat": return new Color(1f, 0f, 1f, 0.8f);           // Magenta
+            case "bird": return new Color(1f, 1f, 0.5f, 0.8f);        // Amarillo claro
+            case "traffic light": return new Color(0.5f, 1f, 0.5f, 0.8f); // Verde claro
+            case "stop sign": return new Color(0.8f, 0.2f, 0.2f, 0.8f);   // Rojo oscuro
+            default: return new Color(1f, 1f, 1f, 0.8f);              // Blanco por defecto
         }
     }
 
@@ -159,7 +212,7 @@ public class DrawBbox : MonoBehaviour
         {
             if (bbox != null)
             {
-                Destroy(bbox); // Esto destruirá automáticamente el LineRenderer y el TextMeshPro hijo
+                Destroy(bbox);
             }
         }
 
@@ -179,38 +232,4 @@ public class DrawBbox : MonoBehaviour
         return activeBBoxes.Count;
     }
 
-    // Método para debug - mostrar datos embebidos si no hay JSON
-    [ContextMenu("Test with Embedded Data")]
-    public void TestWithEmbeddedData()
-    {
-        ObjectDetection testData = new ObjectDetection
-        {
-            timestamp = System.DateTime.Now.ToString("yyyy-MM-ddTHH:mm:ss.fffZ"),
-            objects = new List<Objects>
-            {
-                new Objects
-                {
-                    object_id = 1,
-                    classes = "person",
-                    confidence = 0.95f,
-                    bbox = new float[] {100, 200, 300, 400}, // Coordenadas en píxeles como tu JSON
-                    speed = 1.2f,
-                    distance = 3.5f,
-                    direction = "north"
-                },
-                new Objects
-                {
-                    object_id = 2,
-                    classes = "car",
-                    confidence = 0.89f,
-                    bbox = new float[] {150, 250, 350, 450}, // Coordenadas en píxeles como tu JSON
-                    speed = 5.8f,
-                    distance = 7.1f,
-                    direction = "east"
-                }
-            }
-        };
-
-        OnObjectDetectionUpdated(testData);
-    }
 }
