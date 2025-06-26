@@ -153,7 +153,7 @@ public class DrawBbox : MonoBehaviour
                        $"Distance: {objData.distance:F1}m";
 
         // Posicionar el texto arriba del bounding box con mejor offset
-        Vector3 topLeft = corners[3] + new Vector3(0.05f,-0.1f,0f); // Centro del borde superior
+        Vector3 topLeft = corners[3] + new Vector3(0.11f,-0.1f,0f);
         Vector3 cameraDirection = (cam.transform.position - topLeft).normalized;
         Vector3 textPosition = topLeft + cameraDirection * textDistanceOffset;
 
