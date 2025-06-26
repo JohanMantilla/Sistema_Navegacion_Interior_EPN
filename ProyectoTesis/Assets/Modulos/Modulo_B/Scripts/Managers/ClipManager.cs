@@ -9,35 +9,33 @@ public class ClipManager : MonoBehaviour
     private float maxRangeAlert = 6f;
     private string currentAlertObject = null;
     private Dictionary<string, float> dangerLevelObjects = new Dictionary<string, float>() {
-        {"car", 5},
-        {"bus", 5},
-        {"motorcycle", 4},
-        {"bench", 3},
-        {"bicycle", 3},
+        {"car", 10},
+        {"motorcycle", 9},
+        {"bus", 8},
+        {"bench", 6},
+        {"bicycle", 6},
+        {"sports ball", 4},
+        {"dining table", 4},
+        {"person", 4},
+        {"skateboard", 4},
+        {"fire hydrant", 3},
+        {"umbrella", 3},
         {"cat", 3},
         {"dog", 3},
-        {"sports ball", 3},
-        {"chair",3},
-        {"dining table", 3},
-        {"person", 3},
-        {"stop sign", 2},
-        {"skateboard", 2},
-        {"fire hydrant", 2},
-        {"umbrella", 2},
+        {"chair", 3},
         {"backpack", 2},
         {"handbag", 2},
         {"suitcase", 2},
+        {"stop sign", 2},
         {"bird", 1},
         {"bottle", 1},
         {"cell phone", 1},
-        {"book",1}
+        {"book", 1}
     };
 
     void Start()
     {
-        // Asegúrate de que el AudioSource esté configurado
-        if (audioSource == null)
-            audioSource = GetComponent<AudioSource>();
+
     }
 
     private void OnEnable()
@@ -55,12 +53,10 @@ public class ClipManager : MonoBehaviour
         float highestScore = 0f;
         Objects mostDangerousObject = null;
 
-        // Primero encontrar el objeto más peligroso
         foreach (var obj in data.objects)
         {
             if (dangerLevelObjects.ContainsKey(obj.name))
             {
-                // Solo considerar objetos dentro del rango
                 if (obj.distance >= minRangeAlert && obj.distance <= maxRangeAlert)
                 {
                     float score = dangerLevelObjects[obj.name] / obj.distance;
@@ -73,7 +69,6 @@ public class ClipManager : MonoBehaviour
             }
         }
 
-        // Luego reproducir la alerta si es necesario
         PlayAlertToNearestDangerousObject(mostDangerousObject);
     }
 
@@ -81,7 +76,6 @@ public class ClipManager : MonoBehaviour
     {
         if (mostDangerousObject != null)
         {
-            // Si es un objeto diferente al actual, reproducir alerta
             if (currentAlertObject != mostDangerousObject.name)
             {
                 PlayProximityAlert(mostDangerousObject.name);
@@ -89,7 +83,6 @@ public class ClipManager : MonoBehaviour
         }
         else
         {
-            // Si no hay objetos peligrosos, detener la alerta
             if (currentAlertObject != null)
             {
                 StopClip();
@@ -97,7 +90,6 @@ public class ClipManager : MonoBehaviour
         }
     }
 
-    // Play con proximidad 
     void PlayProximityAlert(string nearestObject)
     {
         if (alertSound != null && audioSource != null)
@@ -106,12 +98,9 @@ public class ClipManager : MonoBehaviour
             audioSource.clip = alertSound;
             ChangeVolume(0.1f);
             audioSource.Play();
-
-            Debug.Log($"Reproduciendo alerta para: {nearestObject}");
         }
-        else
-        {
-            Debug.LogWarning("AudioSource o AlertSound no están asignados");
+        else {
+            return;
         }
     }
 
@@ -127,7 +116,6 @@ public class ClipManager : MonoBehaviour
         if (audioSource != null)
         {
             audioSource.Stop();
-            Debug.Log("Alerta detenida");
         }
     }
 }

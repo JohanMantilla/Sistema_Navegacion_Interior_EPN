@@ -4,7 +4,7 @@ using System.Collections.Generic;
 public class NavigationManager : MonoBehaviour
 {
     [Header("Referencias")]
-    public AudioManager audioManager;
+    //public AudioManager audioManager;
 
     [Header("Configuración")]
     [SerializeField] private float tiempoEntreInstrucciones = 3f;
@@ -37,7 +37,7 @@ public class NavigationManager : MonoBehaviour
         string overview = $"Ruta calculada. Distancia total: {currentRoute.total_distance_meters} metros. " +
                          $"Pasos totales: {currentRoute.total_steps}. Comenzando navegación.";
 
-        audioManager.SpeakInstruction(overview);
+        //audioManager.SpeakInstruction(overview);
     }
 
     public void ProcessNextWaypoint()
@@ -54,7 +54,7 @@ public class NavigationManager : MonoBehaviour
 
         if (!string.IsNullOrEmpty(instruction))
         {
-            audioManager.SpeakInstruction(instruction);
+            //audioManager.SpeakInstruction(instruction);
             lastInstructionTime = Time.time;
         }
 
@@ -63,7 +63,7 @@ public class NavigationManager : MonoBehaviour
         // Verificar si llegamos al final
         if (currentWaypointIndex >= currentRoute.waypoints.Count)
         {
-            audioManager.SpeakInstruction("Has llegado a tu destino.");
+            //audioManager.SpeakInstruction("Has llegado a tu destino.");
         }
     }
 
@@ -109,7 +109,7 @@ public class NavigationManager : MonoBehaviour
     // Método para dar instrucciones manuales
     public void GiveManualInstruction(string instruction)
     {
-        audioManager.SpeakInstruction(instruction);
+        //audioManager.SpeakInstruction(instruction);
     }
 
     // Método para reiniciar navegación
