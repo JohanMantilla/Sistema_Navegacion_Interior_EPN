@@ -17,6 +17,8 @@ public class ItemLocation : MonoBehaviour
     public Button btnCheck;
     public Button btnCancel;
 
+
+    public static event Action<Location> OnSelectLocation;
     private const string PERSISTENT_LOCATION = "Persistence_Location"; 
 
     void Awake()
@@ -72,11 +74,11 @@ public class ItemLocation : MonoBehaviour
         }
         Invoke(nameof(showConfirmationDialog), 0.5f);
         txtNameLocation.text = locationItemModel.nombre;
-        
+
         if (btnCheck != null)
         {
             btnCheck.onClick.RemoveAllListeners();
-            btnCheck.onClick.AddListener(() => OnClickItem(locationItemModel));
+            btnCheck.onClick.AddListener(() => OnConfirmationClick(locationItemModel));
         }
 
         if (btnCancel != null)
@@ -88,14 +90,17 @@ public class ItemLocation : MonoBehaviour
         //OnLocationChanged?.Invoke(locationItemModel.nombre); 
     }
 
-    void OnClickItem(Location locationItemModel)
+    void OnConfirmationClick(Location locationItemModel)
     {
         Debug.Log("Entro a OnClicKItem : " + locationItemModel.nombre);
         if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize) {
             AndroidTTSManager.Instance.Speak("Confirmado");
         }
         OnLocationChanged?.Invoke(locationItemModel.nombre);
-        
+        // aca envio
+        OnSelectLocation?.Invoke(locationItemModel);
+
+
         Invoke(nameof(hiddenConfirmationDialog), 0.5f);
     }
 

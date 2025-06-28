@@ -1,5 +1,7 @@
+using System;
 using System.Collections.Generic;
 using UnityEngine;
+
 public class LocationList : MonoBehaviour
 {
     [Header("Referencias ScrollView")]
@@ -8,6 +10,7 @@ public class LocationList : MonoBehaviour
     [Header("Datos")]
     public List<Location> locations = new List<Location>();
     private List<GameObject> items = new List<GameObject>();
+    
     void Start()
     {
         AddDataLocations();

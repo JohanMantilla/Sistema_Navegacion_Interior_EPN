@@ -13,6 +13,7 @@ public class NavigationUI : MonoBehaviour
     public GameObject scrollViewEPNLocations;
     private Button btnArrivalLocation;
     private TextMeshProUGUI txtArrivalLocation;
+    private TextMeshProUGUI newLocation;
 
     [SerializeField] private GameObject pnlConfirmationDialog;
     // Variable estática para controlar si ya se reprodujo el mensaje
@@ -28,11 +29,13 @@ public class NavigationUI : MonoBehaviour
     {
         JsonDataManager.OnJsonRouteUpdated += UpdateUI;
         ItemLocation.OnLocationChanged += UpdateArrivalLocation;
+        //ItemLocation.OnSelectLocation += UpdatedUILabel;
     }
     private void OnDisable()
     {
         JsonDataManager.OnJsonRouteUpdated -= UpdateUI;
         ItemLocation.OnLocationChanged -= UpdateArrivalLocation;
+        //ItemLocation.OnSelectLocation -= UpdatedUILabel;
     }
     private void Start()
     {
@@ -108,6 +111,10 @@ public class NavigationUI : MonoBehaviour
             scrollViewEPNLocations = GameObject.Find("EPNLocations");
         }
 
+        if (newLocation == null) {
+            newLocation = GameObject.Find("newLocation")?.GetComponent<TextMeshProUGUI>();
+        }
+
         AddListeners();
     }
     private void AddListeners()
@@ -153,6 +160,14 @@ public class NavigationUI : MonoBehaviour
         if (txtLocation != null && routeData != null)
         {
             txtLocation.text = routeData.route.total_steps.ToString();
+        }
+    }
+
+    void UpdatedUILabel(Location location)
+    {
+        InitializeUIElements();
+        if (newLocation != null && location != null ) {
+            newLocation.text = location.nombre;
         }
     }
     void UpdateArrivalLocation(string nameLocation)
