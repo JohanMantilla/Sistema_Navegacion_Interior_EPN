@@ -14,6 +14,8 @@ public class WebSocketClient : MonoBehaviour
     
     // Evento para notificar cambios en la detección de objetos
     public static event Action<ObjectDetection> OnChangeObjectionDetection;
+    // NOMBRE
+    // Latitud, longitud
     
     async void Start()
     {
@@ -68,6 +70,7 @@ public class WebSocketClient : MonoBehaviour
         {
             lastJsonObjectDetection = objectData;
             DeserializeJsonObjectDetection(objectData);
+            
         }
     }
     
