@@ -702,12 +702,16 @@ MonoBehaviour:
   contentPrefab: {fileID: 1888998549880976325, guid: e10880eab4073324caaf67593b16eb94,
     type: 3}
   imageContents:
-  - imageName: p
+  - imageName: BSistemas
     displayText: Biblioteca Facultad de Sistemas
     displayImage: {fileID: 21300000, guid: b0664260e7bd074478abd8fce95e7a7c, type: 3}
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
-  - imageName: p1
+  - imageName: BGeneral
     displayText: Biblioteca General
+    displayImage: {fileID: 21300000, guid: b0664260e7bd074478abd8fce95e7a7c, type: 3}
+    textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
+  - imageName: BAdministracion
+    displayText: "Biblioteca de Administraci\xF3n"
     displayImage: {fileID: 21300000, guid: b0664260e7bd074478abd8fce95e7a7c, type: 3}
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
   heightOffset: 0.3
