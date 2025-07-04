@@ -881,7 +881,7 @@ PlayerSettings:
     iPhone: 1
   scriptingBackend:
     Android: 1
-    Standalone: 0
+    Standalone: 1
     WP8: 2
     WebGL: 1
     WebPlayer: 0
@@ -889,6 +889,7 @@ PlayerSettings:
     iPhone: 1
   il2cppCompilerConfiguration:
     Android: 0
+    Standalone: 0
   il2cppCodeGeneration:
     Android: 0
   il2cppStacktraceInformation: {}
@@ -974,7 +975,7 @@ PlayerSettings:
   syncCapabilities: 0
   platformCapabilities:
     WindowsStoreApps:
-      EnterpriseAuthentication: False
+      CodeGeneration: False
       OfflineMapsManagement: False
       HumanInterfaceDevice: False
       Location: False
@@ -1007,10 +1008,10 @@ PlayerSettings:
       PointOfService: False
       RecordedCallsFolder: False
       Contacts: False
-      InternetClient: True
-      CodeGeneration: False
-      BackgroundMediaPlayback: False
       Proximity: False
+      InternetClient: True
+      BackgroundMediaPlayback: False
+      EnterpriseAuthentication: False
   metroTargetDeviceFamilies:
     Desktop: False
     Holographic: False

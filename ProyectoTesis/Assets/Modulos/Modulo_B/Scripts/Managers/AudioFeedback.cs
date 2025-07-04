@@ -20,29 +20,37 @@ public class AudioFeedback : MonoBehaviour
     // Prioridades de peligro (mayor número = más peligroso)
     private Dictionary<string, int> dangerPriority = new Dictionary<string, int>
     {
-        {"car", 5},
-        {"truck", 5},
-        {"bus", 4},
-        {"motorcycle", 4},
-        {"bicycle", 3},
-        {"person", 2},
-        {"dog", 2},
-        {"obstacle", 3},
-        {"pole", 1},
-        {"tree", 1}
+        {"car", 10},
+        {"motorcycle", 9},
+        {"bus", 8},
+        {"bench", 6},
+        {"bicycle", 6},
+        {"sports ball", 4},
+        {"dining table", 4},
+        {"person", 4},
+        {"skateboard", 4},
+        {"fire hydrant", 3},
+        {"umbrella", 3},
+        {"cat", 3},
+        {"dog", 3},
+        {"chair", 3},
+        {"backpack", 2},
+        {"handbag", 2},
+        {"suitcase", 2},
+        {"stop sign", 2},
+        {"bird", 1},
+        {"bottle", 1},
+        {"cell phone", 1},
+        {"book", 1}
     };
 
     void Start()
     {
-        // Suscribirse al evento del JsonManager
-        //JsonDataManager.OnChangeObjectionDetection += OnObjectDetectionUpdated;
         WebSocketClient.OnChangeObjectionDetection += OnObjectDetectionUpdated;
     }
 
     void OnDestroy()
     {
-        // Desuscribirse del evento
-        //JsonDataManager.OnChangeObjectionDetection -= OnObjectDetectionUpdated;
         WebSocketClient.OnChangeObjectionDetection -= OnObjectDetectionUpdated;
     }
 
@@ -159,7 +167,7 @@ public class AudioFeedback : MonoBehaviour
         isAudioPlaying = true;
 
         var mostDangerous = dangerousObjects.First();
-        string instruction = GetAvoidanceInstruction(mostDangerous);
+        string instruction = GetAdvancedAvoidanceInstruction(mostDangerous);
 
         // Hablar la instrucción de emergencia
         AndroidTTSManager.Instance.Speak(instruction);
@@ -170,21 +178,175 @@ public class AudioFeedback : MonoBehaviour
         isAudioPlaying = false;
     }
 
-    private string GetAvoidanceInstruction(Objects dangerousObject)
+    private string GetAdvancedAvoidanceInstruction(Objects dangerousObject)
     {
         string objectName = TranslateObjectName(dangerousObject.name);
-        string direction = GetAvoidanceDirection(dangerousObject);
+        string direction = dangerousObject.direction.ToLower();
+        float distance = dangerousObject.distance;
+        float speed = dangerousObject.speed;
 
-        if (dangerousObject.distance <= collisionDistanceThreshold)
+        // Determinar el tipo de maniobra según el contexto
+        AvoidanceAction action = DetermineAvoidanceAction(dangerousObject);
+
+        // Construir mensaje según urgencia y tipo de objeto
+        if (distance <= collisionDistanceThreshold)
         {
-            return $"¡Peligro! {objectName} muy cerca. {direction}";
+            return BuildEmergencyMessage(objectName, action, speed > 2f);
         }
         else
         {
-            return $"Precaución: {objectName} cerca. {direction}";
+            return BuildCautionMessage(objectName, action, direction);
         }
     }
 
+    private AvoidanceAction DetermineAvoidanceAction(Objects obj)
+    {
+        string direction = obj.direction.ToLower();
+        string objectType = obj.name.ToLower();
+        float speed = obj.speed;
+        float distance = obj.distance;
+
+        // Para vehículos rápidos, priorizar retroceso o parada
+        if (IsVehicle(objectType) && speed > 2f)
+        {
+            switch (direction)
+            {
+                case "north":
+                case "front":
+                    return new AvoidanceAction("¡DETENTE INMEDIATAMENTE!", "No te muevas hasta que pase");
+                case "south":
+                case "back":
+                    return new AvoidanceAction("Camina rápido hacia adelante", "El vehículo viene por atrás");
+                case "east":
+                case "right":
+                    return new AvoidanceAction("Muévete rápido a la izquierda", "Aléjate del lado derecho");
+                case "west":
+                case "left":
+                    return new AvoidanceAction("Muévete rápido a la derecha", "Aléjate del lado izquierdo");
+                case "northeast":
+                    return new AvoidanceAction("Retrocede y ve a la izquierda", "Evita la esquina derecha");
+                case "northwest":
+                    return new AvoidanceAction("Retrocede y ve a la derecha", "Evita la esquina izquierda");
+                case "southeast":
+                    return new AvoidanceAction("Avanza y ve a la izquierda", "Sal de esa zona");
+                case "southwest":
+                    return new AvoidanceAction("Avanza y ve a la derecha", "Sal de esa zona");
+                default:
+                    return new AvoidanceAction("¡PARA! Evalúa la situación", "Vehículo cerca moviéndose");
+            }
+        }
+
+        // Para objetos estáticos o lentos
+        if (speed <= 1f || IsStaticObject(objectType))
+        {
+            switch (direction)
+            {
+                case "north":
+                case "front":
+                    return new AvoidanceAction("Camina despacio alrededor por la derecha", "Obstáculo fijo adelante");
+                case "south":
+                case "back":
+                    return new AvoidanceAction("Da un paso adelante", "Hay espacio al frente");
+                case "east":
+                case "right":
+                    return new AvoidanceAction("Camina por la izquierda", "Evita el lado derecho");
+                case "west":
+                case "left":
+                    return new AvoidanceAction("Camina por la derecha", "Evita el lado izquierdo");
+                case "northeast":
+                    return new AvoidanceAction("Ve hacia atrás y a la izquierda", "Rodea el obstáculo");
+                case "northwest":
+                    return new AvoidanceAction("Ve hacia atrás y a la derecha", "Rodea el obstáculo");
+                case "southeast":
+                    return new AvoidanceAction("Ve hacia adelante y a la izquierda", "Rodea por el otro lado");
+                case "southwest":
+                    return new AvoidanceAction("Ve hacia adelante y a la derecha", "Rodea por el otro lado");
+                default:
+                    return new AvoidanceAction("Camina despacio alrededor", "Obstáculo cerca");
+            }
+        }
+
+        // Para personas, animales u objetos con movimiento moderado
+        switch (direction)
+        {
+            case "north":
+            case "front":
+                return new AvoidanceAction("Reduce velocidad y ve por la derecha", "Dale espacio para pasar");
+            case "south":
+            case "back":
+                return new AvoidanceAction("Sigue adelante despacio", "Te está siguiendo");
+            case "east":
+            case "right":
+                return new AvoidanceAction("Mantén tu izquierda", "Dale paso por la derecha");
+            case "west":
+            case "left":
+                return new AvoidanceAction("Mantén tu derecha", "Dale paso por la izquierda");
+            case "northeast":
+                return new AvoidanceAction("Ve despacio hacia atrás izquierda", "Dale espacio diagonal");
+            case "northwest":
+                return new AvoidanceAction("Ve despacio hacia atrás derecha", "Dale espacio diagonal");
+            case "southeast":
+                return new AvoidanceAction("Ve despacio hacia adelante izquierda", "Evita el encuentro");
+            case "southwest":
+                return new AvoidanceAction("Ve despacio hacia adelante derecha", "Evita el encuentro");
+            default:
+                return new AvoidanceAction("Reduce velocidad", "Hay movimiento cerca");
+        }
+    }
+
+    private bool IsVehicle(string objectType)
+    {
+        return objectType == "car" || objectType == "truck" || objectType == "bus" ||
+               objectType == "motorcycle" || objectType == "bicycle";
+    }
+
+    private bool IsStaticObject(string objectType)
+    {
+        return objectType == "pole" || objectType == "tree" || objectType == "obstacle";
+    }
+
+    private string BuildEmergencyMessage(string objectName, AvoidanceAction action, bool isMovingFast)
+    {
+        string urgency = isMovingFast ? "¡PELIGRO!" : "¡Cuidado!";
+        return $"{urgency} {objectName} muy cerca. {action.PrimaryAction}";
+    }
+
+    private string BuildCautionMessage(string objectName, AvoidanceAction action, string direction)
+    {
+        string directionText = GetDetailedDirection(direction);
+        return $"Precaución: {objectName} {directionText}. {action.PrimaryAction}";
+    }
+
+    private string GetDetailedDirection(string direction)
+    {
+        switch (direction)
+        {
+            case "north":
+            case "front":
+                return "justo al frente";
+            case "south":
+            case "back":
+                return "directamente atrás";
+            case "east":
+            case "right":
+                return "a tu derecha";
+            case "west":
+            case "left":
+                return "a tu izquierda";
+            case "northeast":
+                return "adelante a la derecha";
+            case "northwest":
+                return "adelante a la izquierda";
+            case "southeast":
+                return "atrás a la derecha";
+            case "southwest":
+                return "atrás a la izquierda";
+            default:
+                return "cerca de ti";
+        }
+    }
+
+    // Método original mantenido como respaldo
     private string GetAvoidanceDirection(Objects obj)
     {
         // Lógica simple de evasión basada en la dirección del objeto
@@ -339,5 +501,18 @@ public class AudioFeedback : MonoBehaviour
             audioCoroutine = null;
         }
         isAudioPlaying = false;
+    }
+}
+
+// Clase auxiliar para acciones de evasión
+public class AvoidanceAction
+{
+    public string PrimaryAction { get; set; }
+    public string SecondaryInfo { get; set; }
+
+    public AvoidanceAction(string primaryAction, string secondaryInfo = "")
+    {
+        PrimaryAction = primaryAction;
+        SecondaryInfo = secondaryInfo;
     }
 }
