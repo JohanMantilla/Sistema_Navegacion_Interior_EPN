@@ -1,7 +1,7 @@
+// ObjectAnalyzerTest.kt - VERSIÓN CORREGIDA
 package com.example.tic_a.detection
 
 import android.graphics.RectF
-import android.hardware.SensorManager
 import android.util.Size
 import androidx.test.ext.junit.runners.AndroidJUnit4
 import androidx.test.platform.app.InstrumentationRegistry
@@ -11,23 +11,19 @@ import junit.framework.TestCase.assertTrue
 import org.junit.Before
 import org.junit.Test
 import org.junit.runner.RunWith
-import org.mockito.Mock
-import org.mockito.MockitoAnnotations
 import kotlin.math.abs
 
 @RunWith(AndroidJUnit4::class)
 class ObjectAnalyzerTest {
-
-    @Mock
-    private lateinit var mockSensorManager: SensorManager
 
     private lateinit var objectAnalyzer: ObjectAnalyzer
     private val screenSize = Size(1080, 1920)
 
     @Before
     fun setUp() {
-        MockitoAnnotations.openMocks(this)
-        objectAnalyzer = ObjectAnalyzer(screenSize, mockSensorManager)
+        // SOLUCIÓN 1: Pasar null en lugar de usar mock
+        // El ObjectAnalyzer debería manejar esto apropiadamente
+        objectAnalyzer = ObjectAnalyzer(screenSize, null)
     }
 
     @Test
@@ -131,8 +127,7 @@ class ObjectAnalyzerTest {
         assertTrue("Distancia de persona debe ser positiva", analyzedPerson.distance > 0f)
         assertTrue("Distancia de carro debe ser positiva", analyzedCar.distance > 0f)
 
-        // Objetos más grandes en píxeles deberían estar más cerca
-        // (aunque esto depende del tamaño real del objeto)
+        // Las distancias deben ser razonables (< 100m)
         assertTrue("Las distancias deben ser razonables (< 100m)",
             analyzedPerson.distance < 100f && analyzedCar.distance < 100f)
     }
@@ -220,6 +215,57 @@ class ObjectAnalyzerTest {
         val emptyList = objectAnalyzer.analyzeObjects(emptyList(), currentTimestamp)
 
         assertTrue("Lista debe estar vacía después del cleanup", emptyList.isEmpty())
+    }
+
+    @Test
+    fun testStationaryObject() {
+        val stationaryPosition = RectF(200f, 200f, 220f, 220f)
+        val timestamps = listOf(0L, 1000L, 2000L, 3000L)
+
+        for (i in timestamps.indices) {
+            val obj = DetectedObject(1, "person", 0.9f, stationaryPosition)
+            val analyzed = objectAnalyzer.analyzeObjects(listOf(obj), timestamps[i])
+
+            if (i > 0) {
+                val speed = analyzed.first().speed
+                assertTrue("Objeto estacionario debe tener velocidad ~0", speed < 5f)
+            }
+        }
+    }
+
+    @Test
+    fun testLinearMovement() {
+        val positions = listOf(
+            RectF(100f, 100f, 120f, 120f),  // t=0
+            RectF(150f, 100f, 170f, 120f),  // t=1000ms, +50px horizontal
+            RectF(200f, 100f, 220f, 120f),  // t=2000ms, +50px horizontal
+            RectF(250f, 100f, 270f, 120f)   // t=3000ms, +50px horizontal
+        )
+
+        val timestamps = listOf(0L, 1000L, 2000L, 3000L)
+
+        var previousSpeed = 0f
+
+        for (i in positions.indices) {
+            val obj = DetectedObject(1, "car", 0.9f, positions[i])
+            val analyzed = objectAnalyzer.analyzeObjects(listOf(obj), timestamps[i])
+
+            if (i > 0) {
+                val currentSpeed = analyzed.first().speed
+
+                // Verificar que la velocidad es positiva
+                assertTrue("Velocidad debe ser positiva", currentSpeed > 0f)
+
+                if (i > 1) {
+                    // La velocidad debería ser estable para movimiento lineal
+                    val speedDifference = abs(currentSpeed - previousSpeed)
+                    assertTrue("Velocidad debe ser estable para movimiento lineal",
+                        speedDifference < 10f)
+                }
+
+                previousSpeed = currentSpeed
+            }
+        }
     }
 
     // Función auxiliar para crear objetos de prueba
