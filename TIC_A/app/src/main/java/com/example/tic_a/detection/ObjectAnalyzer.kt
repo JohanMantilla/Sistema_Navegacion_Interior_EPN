@@ -1,3 +1,4 @@
+// ObjectAnalyzer.kt - VERSIÓN ACTUALIZADA PARA TESTS
 package com.example.tic_a.detection
 
 import android.hardware.Sensor
@@ -13,11 +14,13 @@ import kotlin.math.sqrt
 
 /**
  * Analyzes detected objects to calculate additional information like speed, distance and direction
+ * UPDATED: Now works without SensorManager for testing purposes
  */
 class ObjectAnalyzer(
     private val screenSize: Size,
-    private val sensorManager: SensorManager? = null
+    private val sensorManager: SensorManager? = null // CAMBIO: Hacer opcional
 ) : SensorEventListener {
+
     private val objectHistory = HashMap<Int, ArrayList<Pair<DetectedObject, Long>>>()
     private val maxHistorySize = 10
     private val pixelsPerMeter = 200f // Approximate conversion factor
@@ -28,22 +31,25 @@ class ObjectAnalyzer(
     private var cameraHeight = 1.5f // Default camera height in meters
 
     init {
-        // Register sensors for better distance estimation
-        sensorManager?.let {
-            it.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
-                sensorManager.registerListener(
+        // CAMBIO: Solo registrar sensores si sensorManager no es null
+        sensorManager?.let { sm ->
+            sm.getDefaultSensor(Sensor.TYPE_ACCELEROMETER)?.also { accelerometer ->
+                sm.registerListener(
                     this,
                     accelerometer,
                     SensorManager.SENSOR_DELAY_NORMAL
                 )
             }
-            it.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.also { magneticField ->
-                sensorManager.registerListener(
+            sm.getDefaultSensor(Sensor.TYPE_MAGNETIC_FIELD)?.also { magneticField ->
+                sm.registerListener(
                     this,
                     magneticField,
                     SensorManager.SENSOR_DELAY_NORMAL
                 )
             }
+            Log.d(TAG, "Sensor listeners registered")
+        } ?: run {
+            Log.d(TAG, "No SensorManager provided - running in test mode")
         }
     }
 
@@ -97,6 +103,8 @@ class ObjectAnalyzer(
                     } else {
                         0f
                     }
+
+                    Log.v(TAG, "Object ${detection.id}: speed=$speed px/s, direction=$direction°")
                 }
             }
 
@@ -144,22 +152,31 @@ class ObjectAnalyzer(
         val objectHeight = detection.boundingBox.height()
 
         // Approximate real-world sizes of common objects in meters
-        val realWorldSize = when (detection.classLabel) {
+        val realWorldSize = when (detection.classLabel.lowercase()) {
             "person" -> 1.7f  // Average human height
             "car" -> 4.5f     // Average car length
             "bicycle" -> 1.7f // Average bicycle length
+            "motorcycle" -> 2.0f
+            "bus" -> 12.0f    // Average bus length
+            "truck" -> 8.0f   // Average truck length
             "dog" -> 0.6f     // Average dog height
+            "cat" -> 0.3f     // Average cat height
             "chair" -> 0.8f   // Average chair height
+            "bottle" -> 0.25f // Average bottle height
+            "cell phone" -> 0.15f
+            "laptop" -> 0.3f
             else -> 1.0f      // Default for unknown objects
         }
 
         // Calculate distance using simple pinhole camera model
         // distance = (real world size * focal length) / apparent size in pixels
-        val focalLength = 500f // Approximate focal length in pixels
+        val focalLength = 500f // Approximate focal length in pixels for mobile cameras
         val apparentSize = maxOf(objectWidth, objectHeight)
 
         return if (apparentSize > 0) {
-            (realWorldSize * focalLength) / apparentSize
+            val calculatedDistance = (realWorldSize * focalLength) / apparentSize
+            // Clamp distance to reasonable range (0.5m to 100m)
+            calculatedDistance.coerceIn(0.5f, 100f)
         } else {
             10f // Default value if calculation fails
         }
@@ -170,6 +187,7 @@ class ObjectAnalyzer(
      * @param currentTimestamp Current timestamp in milliseconds
      */
     private fun cleanupHistory(currentTimestamp: Long) {
+        val maxAge = 3000L // 3 seconds
         val idsToRemove = ArrayList<Int>()
 
         for ((id, history) in objectHistory) {
@@ -179,13 +197,18 @@ class ObjectAnalyzer(
             }
 
             val lastSeen = history.last().second
-            if (currentTimestamp - lastSeen > 3000) { // Remove after 3 seconds
+            if (currentTimestamp - lastSeen > maxAge) {
                 idsToRemove.add(id)
+                Log.v(TAG, "Removing object $id from history (last seen ${currentTimestamp - lastSeen}ms ago)")
             }
         }
 
         for (id in idsToRemove) {
             objectHistory.remove(id)
+        }
+
+        if (idsToRemove.isNotEmpty()) {
+            Log.d(TAG, "Cleaned up ${idsToRemove.size} old objects from history")
         }
     }
 
@@ -208,6 +231,19 @@ class ObjectAnalyzer(
         }
     }
 
+    /**
+     * Gets current tracking statistics for debugging
+     */
+    fun getTrackingStats(): Map<String, Any> {
+        return mapOf(
+            "tracked_objects" to objectHistory.size,
+            "total_history_entries" to objectHistory.values.sumOf { it.size },
+            "avg_history_per_object" to if (objectHistory.isNotEmpty()) {
+                objectHistory.values.sumOf { it.size }.toFloat() / objectHistory.size
+            } else 0f
+        )
+    }
+
     override fun onSensorChanged(event: SensorEvent?) {
         if (event == null) return
 
@@ -224,31 +260,59 @@ class ObjectAnalyzer(
     }
 
     private fun updateCameraOrientation() {
-        val rotationMatrix = FloatArray(9)
-        val orientationAngles = FloatArray(3)
+        // CAMBIO: Solo actualizar orientación si tenemos sensorManager
+        sensorManager?.let {
+            val rotationMatrix = FloatArray(9)
+            val orientationAngles = FloatArray(3)
 
-        // Update rotation matrix, which is needed to update the orientation angles
-        SensorManager.getRotationMatrix(
-            rotationMatrix,
-            null,
-            accelerometerReading,
-            magnetometerReading
-        )
+            // Update rotation matrix, which is needed to update the orientation angles
+            val success = SensorManager.getRotationMatrix(
+                rotationMatrix,
+                null,
+                accelerometerReading,
+                magnetometerReading
+            )
 
-        // Get orientation angles from the rotation matrix
-        SensorManager.getOrientation(rotationMatrix, orientationAngles)
+            if (success) {
+                // Get orientation angles from the rotation matrix
+                SensorManager.getOrientation(rotationMatrix, orientationAngles)
 
-        // Use orientation to improve distance estimation
-        // For simplicity, we're just logging it here
-        Log.d(TAG, "Device orientation: pitch=${orientationAngles[1]}, roll=${orientationAngles[2]}")
+                // Use orientation to improve distance estimation
+                val pitch = orientationAngles[1] * 180 / Math.PI.toFloat()
+                val roll = orientationAngles[2] * 180 / Math.PI.toFloat()
+
+                Log.v(TAG, "Device orientation: pitch=$pitch°, roll=$roll°")
+
+                // Adjust camera height based on pitch (optional enhancement)
+                cameraHeight = when {
+                    pitch > 30 -> 0.8f  // Phone tilted down (lower height)
+                    pitch < -30 -> 2.2f // Phone tilted up (higher height)
+                    else -> 1.5f        // Normal height
+                }
+            }
+        }
     }
 
     override fun onAccuracyChanged(sensor: Sensor?, accuracy: Int) {
-        // Not needed for this implementation
+        // Log accuracy changes for debugging
+        sensor?.let {
+            Log.v(TAG, "Sensor ${sensor.name} accuracy changed to $accuracy")
+        }
     }
 
+    /**
+     * Releases resources and unregisters sensor listeners
+     */
     fun release() {
-        sensorManager?.unregisterListener(this)
+        // CAMBIO: Solo desregistrar si sensorManager no es null
+        sensorManager?.let { sm ->
+            sm.unregisterListener(this)
+            Log.d(TAG, "Sensor listeners unregistered")
+        }
+
+        // Clear history to free memory
+        objectHistory.clear()
+        Log.d(TAG, "Object history cleared")
     }
 
     companion object {
