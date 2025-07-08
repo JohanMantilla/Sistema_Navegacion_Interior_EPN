@@ -53,9 +53,9 @@ public class UIManager : MonoBehaviour
     }
     public void LoadInitialScene()
     {
-        if (!PlayerPrefs.HasKey("isFirstAppExecution"))
+        if (!PlayerPrefs.HasKey("isFirstAppExecutionI"))
         {
-            PlayerPrefs.SetInt("isFirstAppExecution", 1);
+            PlayerPrefs.SetInt("isFirstAppExecutionI", 1);
             PlayerPrefs.Save();
             LoadScene("WelcomeUI");
         }
@@ -63,8 +63,8 @@ public class UIManager : MonoBehaviour
         {
             LoadScene("NavigationUI");
         }
-        
     }
+
     private void LoadWelcomeUI()
     {
         SceneManager.LoadScene("WelcomeUI");

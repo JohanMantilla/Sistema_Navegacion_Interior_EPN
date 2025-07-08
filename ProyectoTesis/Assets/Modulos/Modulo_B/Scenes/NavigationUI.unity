@@ -3556,15 +3556,16 @@ MonoBehaviour:
   endMarker: {fileID: 324959277}
   pathColor: {r: 1, g: 0, b: 0, a: 1}
   pathWidth: 5
-  startLat: 40.712799072265625
-  startLng: -74.00599670410156
-  endLat: 40.720001220703125
-  endLng: -73.99500274658203
+  startLat: -0.2116745322005768
+  startLng: -78.49276748996702
+  endLat: -0.2100592
+  endLng: -78.49027
   pathPoints:
-  - {x: 40.7128, y: -74.006}
-  - {x: 40.715, y: -74.004}
-  - {x: 40.718, y: -74.002}
-  - {x: 40.72, y: -73.995}
+  - {x: -0.21173802, y: -78.49271}
+  - {x: -0.21236597, y: -78.490395}
+  - {x: -0.21130516, y: -78.48991}
+  - {x: -0.21046652, y: -78.49}
+  - {x: -0.2100592, y: -78.49027}
 --- !u!114 &1313236758
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -5287,11 +5288,11 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   apiKey: AIzaSyDfGA3dKIHKSW7RvU5HPbZ6fUkRiyBVdik
   mapImage: {fileID: 522728881}
-  centerLatitude: 40.712799072265625
-  centerLongitude: -74.00599670410156
-  zoom: 15
-  mapWidth: 640
-  mapHeight: 640
+  centerLatitude: -0.21007054148416407
+  centerLongitude: -78.48929972012172
+  zoom: 17
+  mapWidth: 660
+  mapHeight: 660
   mapCenterLat: 0
   mapCenterLng: 0
   metersPerPixelLat: 0
