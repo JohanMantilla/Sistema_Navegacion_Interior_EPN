@@ -3,13 +3,10 @@ package com.example.tic_a
 import android.Manifest
 import android.content.pm.PackageManager
 import android.graphics.Bitmap
-import android.graphics.BitmapFactory
 import android.graphics.Canvas
 import android.graphics.Color
-import android.graphics.ImageFormat
 import android.graphics.Paint
 import android.graphics.RectF
-import android.graphics.YuvImage
 import android.os.Bundle
 import android.util.Log
 import android.util.Size
@@ -34,16 +31,13 @@ import androidx.core.content.ContextCompat
 import com.example.tic_a.detection.ObjectDetector
 import com.example.tic_a.models.DetectedObject
 import com.example.tic_a.models.PerformanceMetrics
-import kotlinx.coroutines.Dispatchers
-import kotlinx.coroutines.MainScope
-import kotlinx.coroutines.launch
 import org.json.JSONObject
-import java.io.ByteArrayOutputStream
-import java.io.File
-import java.io.FileOutputStream
-import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
+import androidx.camera.core.resolutionselector.ResolutionSelector
+import androidx.camera.core.resolutionselector.ResolutionStrategy
+import android.view.Surface
+import androidx.camera.core.resolutionselector.AspectRatioStrategy
 
 class MainActivity : AppCompatActivity() {
     private lateinit var previewView: PreviewView
@@ -153,7 +147,6 @@ class MainActivity : AppCompatActivity() {
         try {
             Log.d(TAG, "Initializing object detector...")
 
-            // Verificar si el archivo del modelo existe
             val modelPath = config.optString("model_path", "yolov8n.tflite")
             Log.d(TAG, "Looking for model: $modelPath")
 
@@ -168,7 +161,6 @@ class MainActivity : AppCompatActivity() {
                 return
             }
 
-            // Get screen size for the detector
             val displayMetrics = resources.displayMetrics
             val screenSize = Size(displayMetrics.widthPixels, displayMetrics.heightPixels)
             Log.d(TAG, "Screen size: ${screenSize.width} x ${screenSize.height}")
@@ -180,16 +172,16 @@ class MainActivity : AppCompatActivity() {
             ).apply {
                 Log.d(TAG, "ObjectDetector instance created")
 
-                // Set detection result listener
+                // CORRECCIÓN: Pasar las dimensiones del modelo YOLO (640x640)
                 setOnDetectionResultListener { detectedObjects, processedFrame ->
                     Log.d(TAG, "Detection result received: ${detectedObjects.size} objects")
                     runOnUiThread {
                         updateObjectCount(detectedObjects.size)
-                        overlayView.updateDetections(detectedObjects)
+                        // Pasar las dimensiones correctas de la imagen procesada
+                        overlayView.updateDetections(detectedObjects, Size(640, 640))
                     }
                 }
 
-                // Set performance update listener
                 setOnPerformanceUpdateListener { metrics ->
                     Log.d(TAG, "Performance update: FPS=${metrics.fps}")
                     runOnUiThread {
@@ -213,16 +205,35 @@ class MainActivity : AppCompatActivity() {
             val cameraProvider = cameraProviderFuture.get()
 
             // Preview
+            val previewResolutionSelector = ResolutionSelector.Builder()
+                .setAspectRatioStrategy(
+                    AspectRatioStrategy(
+                        AspectRatio.RATIO_16_9,
+                        AspectRatioStrategy.FALLBACK_RULE_AUTO
+                    )
+                )
+                .build()
+
             val preview = Preview.Builder()
-                .setTargetAspectRatio(AspectRatio.RATIO_16_9)
+                .setResolutionSelector(previewResolutionSelector)
                 .build()
                 .also {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-            // Image analysis - CORRECCIÓN: Usar resolución estándar para YOLO
+            // Image analysis - CORRECCIÓN: Usar ResolutionSelector en lugar de setTargetResolution
+            val resolutionSelector = ResolutionSelector.Builder()
+                .setResolutionStrategy(
+                    ResolutionStrategy(
+                        Size(640, 640),
+                        ResolutionStrategy.FALLBACK_RULE_CLOSEST_HIGHER_THEN_LOWER
+                    )
+                )
+                .build()
+
             val imageAnalyzer = ImageAnalysis.Builder()
-                .setTargetResolution(Size(640, 640)) // Cuadrado para YOLO
+                .setResolutionSelector(resolutionSelector)
+                .setTargetRotation(Surface.ROTATION_0)
                 .setBackpressureStrategy(ImageAnalysis.STRATEGY_KEEP_ONLY_LATEST)
                 .build()
                 .also {
@@ -271,6 +282,7 @@ class MainActivity : AppCompatActivity() {
 
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
         return try {
+            // CORRECCIÓN: Convertir YUV a RGB apropiadamente
             val yBuffer = image.planes[0].buffer
             val uBuffer = image.planes[1].buffer
             val vBuffer = image.planes[2].buffer
@@ -281,58 +293,19 @@ class MainActivity : AppCompatActivity() {
 
             val nv21 = ByteArray(ySize + uSize + vSize)
 
-            // Copiar datos Y
+            // Copiar Y, U, V planes
             yBuffer.get(nv21, 0, ySize)
+            vBuffer.get(nv21, ySize, vSize)
+            uBuffer.get(nv21, ySize + vSize, uSize)
 
-            // Intercalar U y V para formato NV21
-            val uvBuffer = ByteArray(uSize + vSize)
-            vBuffer.get(uvBuffer, 0, vSize)
-            uBuffer.get(uvBuffer, vSize, uSize)
-
-            // Intercalar UV
-            for (i in 0 until uSize) {
-                nv21[ySize + i * 2] = uvBuffer[i + vSize] // U
-                nv21[ySize + i * 2 + 1] = uvBuffer[i] // V
-            }
-
-            // Convertir NV21 a YuvImage
-            val yuvImage = YuvImage(nv21, ImageFormat.NV21, image.width, image.height, null)
-            val out = ByteArrayOutputStream()
-            yuvImage.compressToJpeg(
-                android.graphics.Rect(0, 0, yuvImage.width, yuvImage.height),
-                90, // Calidad JPEG
-                out
-            )
+            // Convertir YUV a RGB
+            val yuvImage = android.graphics.YuvImage(nv21, android.graphics.ImageFormat.NV21,
+                image.width, image.height, null)
+            val out = java.io.ByteArrayOutputStream()
+            yuvImage.compressToJpeg(android.graphics.Rect(0, 0, image.width, image.height), 100, out)
             val imageBytes = out.toByteArray()
 
-            // Crear bitmap desde JPEG
-            val bitmap = BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
-            Log.d(TAG, "Bitmap conversion successful: ${bitmap?.width}x${bitmap?.height}")
-            bitmap
-        } catch (e: Exception) {
-            Log.e(TAG, "Error converting ImageProxy to Bitmap", e)
-            // Fallback a conversión simple
-            imageProxyToBitmapRobust(image)
-        }
-    }
-
-    private fun imageProxyToBitmapRobust(image: ImageProxy): Bitmap? {
-        return try {
-            val yPlane = image.planes[0]
-            val yBuffer = yPlane.buffer
-            val yBytes = ByteArray(yBuffer.remaining())
-            yBuffer.get(yBytes)
-
-            // Crear bitmap RGB desde datos Y (escala de grises)
-            val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-            val pixels = IntArray(image.width * image.height)
-
-            for (i in yBytes.indices) {
-                val gray = yBytes[i].toInt() and 0xFF
-                pixels[i] = Color.rgb(gray, gray, gray)
-            }
-
-            bitmap.setPixels(pixels, 0, image.width, 0, 0, image.width, image.height)
+            val bitmap = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
             // Rotar si es necesario
             val rotationDegrees = image.imageInfo.rotationDegrees
@@ -344,33 +317,36 @@ class MainActivity : AppCompatActivity() {
 
             bitmap
         } catch (e: Exception) {
-            Log.e(TAG, "Error in robust bitmap conversion", e)
-            null
-        }
-    }
+            Log.e(TAG, "Error converting YUV to RGB, falling back to grayscale", e)
+            // Fallback a escala de grises mejorado
+            try {
+                val yPlane = image.planes[0]
+                val yBuffer = yPlane.buffer
+                val yBytes = ByteArray(yBuffer.remaining())
+                yBuffer.get(yBytes)
 
-    // ALTERNATIVA: Conversión más simple usando solo el plano Y
-    private fun imageProxyToBitmapSimple(image: ImageProxy): Bitmap? {
-        return try {
-            val buffer = image.planes[0].buffer
-            val bytes = ByteArray(buffer.remaining())
-            buffer.get(bytes)
+                val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
+                val pixels = IntArray(image.width * image.height)
 
-            // Crear bitmap en escala de grises
-            val bitmap = Bitmap.createBitmap(image.width, image.height, Bitmap.Config.ARGB_8888)
-            val pixels = IntArray(image.width * image.height)
+                for (i in yBytes.indices) {
+                    val gray = yBytes[i].toInt() and 0xFF
+                    pixels[i] = Color.rgb(gray, gray, gray)
+                }
 
-            for (i in bytes.indices) {
-                val gray = bytes[i].toInt() and 0xFF
-                pixels[i] = Color.rgb(gray, gray, gray)
+                bitmap.setPixels(pixels, 0, image.width, 0, 0, image.width, image.height)
+
+                val rotationDegrees = image.imageInfo.rotationDegrees
+                if (rotationDegrees != 0) {
+                    val matrix = android.graphics.Matrix()
+                    matrix.postRotate(rotationDegrees.toFloat())
+                    return Bitmap.createBitmap(bitmap, 0, 0, bitmap.width, bitmap.height, matrix, true)
+                }
+
+                bitmap
+            } catch (fallbackException: Exception) {
+                Log.e(TAG, "Fallback bitmap conversion also failed", fallbackException)
+                null
             }
-
-            bitmap.setPixels(pixels, 0, image.width, 0, 0, image.width, image.height)
-            Log.d(TAG, "Simple bitmap conversion successful: ${bitmap.width}x${bitmap.height}")
-            bitmap
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in simple bitmap conversion", e)
-            null
         }
     }
 
@@ -452,6 +428,7 @@ class MainActivity : AppCompatActivity() {
 }
 
 // Custom overlay view for drawing bounding boxes
+// OverlayView corregido - Escalado apropiado de bounding boxes
 class OverlayView @JvmOverloads constructor(
     context: android.content.Context,
     attrs: android.util.AttributeSet? = null,
@@ -459,6 +436,9 @@ class OverlayView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var detectedObjects: List<DetectedObject> = emptyList()
+    private var imageWidth: Int = 640  // Dimensiones de la imagen procesada por YOLO
+    private var imageHeight: Int = 640
+
     private val paint = Paint().apply {
         color = Color.GREEN
         strokeWidth = 6f
@@ -468,19 +448,24 @@ class OverlayView @JvmOverloads constructor(
         color = Color.GREEN
         textSize = 36f
         style = Paint.Style.FILL
-        setShadowLayer(2f, 2f, 2f, Color.BLACK) // Sombra para mejor legibilidad
+        setShadowLayer(2f, 2f, 2f, Color.BLACK)
     }
     private val backgroundPaint = Paint().apply {
-        color = Color.argb(128, 0, 0, 0) // Fondo semi-transparente para texto
+        color = Color.argb(128, 0, 0, 0)
         style = Paint.Style.FILL
     }
 
-    fun updateDetections(objects: List<DetectedObject>) {
+    fun updateDetections(objects: List<DetectedObject>, processingImageSize: Size? = null) {
         detectedObjects = objects
-        Log.d("OverlayView", "Updating overlay with ${objects.size} detections")
-        objects.forEach { obj ->
-            Log.d("OverlayView", "Object: ${obj.classLabel} at [${obj.boundingBox.left}, ${obj.boundingBox.top}, ${obj.boundingBox.right}, ${obj.boundingBox.bottom}]")
+
+        // Actualizar dimensiones de la imagen procesada si se proporcionan
+        processingImageSize?.let {
+            imageWidth = it.width
+            imageHeight = it.height
         }
+
+        Log.d("OverlayView", "Updating overlay with ${objects.size} detections")
+        Log.d("OverlayView", "Image dimensions: ${imageWidth}x${imageHeight}, View: ${width}x${height}")
         invalidate()
     }
 
@@ -492,87 +477,92 @@ class OverlayView @JvmOverloads constructor(
     override fun onDraw(canvas: Canvas) {
         super.onDraw(canvas)
 
-        if (detectedObjects.isEmpty()) {
-            Log.d("OverlayView", "No objects to draw")
+        if (detectedObjects.isEmpty() || width == 0 || height == 0) {
             return
         }
 
-        Log.d("OverlayView", "Drawing ${detectedObjects.size} objects on canvas ${width}x${height}")
-
         canvas.let { c ->
             detectedObjects.forEach { obj ->
-                // Las coordenadas están en píxeles de la imagen original
-                // Escalar al tamaño actual del overlay manteniendo aspect ratio
-                val scaleX = width.toFloat() / obj.boundingBox.right.coerceAtLeast(1f)
-                val scaleY = height.toFloat() / obj.boundingBox.bottom.coerceAtLeast(1f)
-                val scale = minOf(scaleX, scaleY, 1f) // No hacer zoom, solo escalar hacia abajo
+                // CORRECCIÓN: Calcular escalado basado en las dimensiones reales de la imagen procesada
+                val scaleX = width.toFloat() / imageWidth.toFloat()
+                val scaleY = height.toFloat() / imageHeight.toFloat()
 
+                // Usar el mismo factor de escala para mantener aspect ratio
+                val scale = minOf(scaleX, scaleY)
+
+                // Calcular offset para centrar la imagen escalada
+                val scaledWidth = imageWidth * scale
+                val scaledHeight = imageHeight * scale
+                val offsetX = (width - scaledWidth) / 2f
+                val offsetY = (height - scaledHeight) / 2f
+
+                // CORRECCIÓN: Aplicar escalado y offset correctos
                 val rect = RectF(
-                    obj.boundingBox.left * scale,
-                    obj.boundingBox.top * scale,
-                    obj.boundingBox.right * scale,
-                    obj.boundingBox.bottom * scale
+                    obj.boundingBox.left * scale + offsetX,
+                    obj.boundingBox.top * scale + offsetY,
+                    obj.boundingBox.right * scale + offsetX,
+                    obj.boundingBox.bottom * scale + offsetY
                 )
 
                 // Asegurar que el rectángulo esté dentro de los límites del canvas
-                rect.left = rect.left.coerceIn(0f, width.toFloat())
-                rect.top = rect.top.coerceIn(0f, height.toFloat())
-                rect.right = rect.right.coerceIn(0f, width.toFloat())
-                rect.bottom = rect.bottom.coerceIn(0f, height.toFloat())
+                rect.intersect(0f, 0f, width.toFloat(), height.toFloat())
 
-                // Dibujar rectángulo de detección
-                c.drawRect(rect, paint)
+                // Dibujar solo si el rectángulo es válido
+                if (rect.width() > 0 && rect.height() > 0) {
+                    // Dibujar rectángulo de detección
+                    c.drawRect(rect, paint)
 
-                // Preparar texto de etiqueta
-                val label = "${obj.classLabel} (${String.format("%.2f", obj.confidence)})"
-                val textBounds = android.graphics.Rect()
-                textPaint.getTextBounds(label, 0, label.length, textBounds)
+                    // Preparar texto de etiqueta
+                    val label = "${obj.classLabel} (${String.format("%.2f", obj.confidence)})"
+                    val textBounds = android.graphics.Rect()
+                    textPaint.getTextBounds(label, 0, label.length, textBounds)
 
-                // Posición del texto
-                val textX = rect.left
-                val textY = maxOf(rect.top - 10f, textBounds.height().toFloat() + 10f)
+                    // Posición del texto
+                    val textX = rect.left
+                    val textY = maxOf(rect.top - 10f, textBounds.height().toFloat() + 10f)
 
-                // Dibujar fondo del texto
-                c.drawRect(
-                    textX - 5f,
-                    textY - textBounds.height() - 5f,
-                    textX + textBounds.width() + 5f,
-                    textY + 5f,
-                    backgroundPaint
-                )
-
-                // Dibujar texto de etiqueta
-                c.drawText(label, textX, textY, textPaint)
-
-                // Dibujar información adicional si está disponible
-                var offsetY = 35f
-
-                if (obj.speed > 0f) {
-                    val speedText = "Speed: ${String.format("%.1f", obj.speed)} px/s"
+                    // Dibujar fondo del texto
                     c.drawRect(
-                        rect.left - 5f,
-                        rect.bottom + offsetY - textBounds.height() - 5f,
-                        rect.left + textPaint.measureText(speedText) + 5f,
-                        rect.bottom + offsetY + 5f,
+                        textX - 5f,
+                        textY - textBounds.height() - 5f,
+                        textX + textBounds.width() + 5f,
+                        textY + 5f,
                         backgroundPaint
                     )
-                    c.drawText(speedText, rect.left, rect.bottom + offsetY, textPaint)
-                    offsetY += 35f
-                }
 
-                if (obj.distance > 0f) {
-                    val distanceText = "Distance: ${String.format("%.1f", obj.distance)} m"
-                    c.drawRect(
-                        rect.left - 5f,
-                        rect.bottom + offsetY - textBounds.height() - 5f,
-                        rect.left + textPaint.measureText(distanceText) + 5f,
-                        rect.bottom + offsetY + 5f,
-                        backgroundPaint
-                    )
-                    c.drawText(distanceText, rect.left, rect.bottom + offsetY, textPaint)
-                }
+                    // Dibujar texto de etiqueta
+                    c.drawText(label, textX, textY, textPaint)
 
-                Log.d("OverlayView", "Drew ${obj.classLabel} at scaled rect [$rect]")
+                    // Información adicional (solo si hay movimiento real)
+                    var offsetY = 35f
+
+                    if (obj.speed > 5f) { // Solo mostrar si hay movimiento significativo
+                        val speedText = "Speed: ${String.format("%.1f", obj.speed)} px/s"
+                        c.drawRect(
+                            rect.left - 5f,
+                            rect.bottom + offsetY - textBounds.height() - 5f,
+                            rect.left + textPaint.measureText(speedText) + 5f,
+                            rect.bottom + offsetY + 5f,
+                            backgroundPaint
+                        )
+                        c.drawText(speedText, rect.left, rect.bottom + offsetY, textPaint)
+                        offsetY += 35f
+                    }
+
+                    if (obj.distance > 0f) {
+                        val distanceText = "Distance: ${String.format("%.1f", obj.distance)} m"
+                        c.drawRect(
+                            rect.left - 5f,
+                            rect.bottom + offsetY - textBounds.height() - 5f,
+                            rect.left + textPaint.measureText(distanceText) + 5f,
+                            rect.bottom + offsetY + 5f,
+                            backgroundPaint
+                        )
+                        c.drawText(distanceText, rect.left, rect.bottom + offsetY, textPaint)
+                    }
+
+                    Log.d("OverlayView", "Drew ${obj.classLabel} at scaled rect [${rect.left}, ${rect.top}, ${rect.right}, ${rect.bottom}]")
+                }
             }
         }
     }
