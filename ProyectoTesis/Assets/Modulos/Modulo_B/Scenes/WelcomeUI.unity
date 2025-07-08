@@ -790,6 +790,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   scrollViewEPNLocations: {fileID: 0}
+  pnlConfirmationDialog: {fileID: 0}
 --- !u!1 &766125748
 GameObject:
   m_ObjectHideFlags: 0
@@ -1029,8 +1030,9 @@ MonoBehaviour:
   m_text: "Somos una aplicaci\xF3n accesible que \npermite a usuarios con deficiencia
     \nvisual moderada navegar dentro de \nla Escuela Politecnica Nacional"
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 77f639ce08045474a9dd97adfeff18a1, type: 2}
+  m_sharedMaterial: {fileID: 3481895586061976932, guid: 77f639ce08045474a9dd97adfeff18a1,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
@@ -1649,8 +1651,9 @@ MonoBehaviour:
   m_text: "A continuaci\xF3n proporcionanos \npermisos y establece configuraciones
     \na tu gusto."
   m_isRightToLeft: 0
-  m_fontAsset: {fileID: 11400000, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
-  m_sharedMaterial: {fileID: 2180264, guid: 8f586378b4e144a9851e7b34d9b748ee, type: 2}
+  m_fontAsset: {fileID: 11400000, guid: 77f639ce08045474a9dd97adfeff18a1, type: 2}
+  m_sharedMaterial: {fileID: 3481895586061976932, guid: 77f639ce08045474a9dd97adfeff18a1,
+    type: 2}
   m_fontSharedMaterials: []
   m_fontMaterial: {fileID: 0}
   m_fontMaterials: []
