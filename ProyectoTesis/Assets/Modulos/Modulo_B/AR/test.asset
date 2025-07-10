@@ -45,5 +45,5 @@ MonoBehaviour:
       m_GuidHigh: 17273308505065993928
     m_Size: {x: 1.5749999, y: 2.1}
     m_SpecifySize: 1
-    m_Name: BAdministracion
+    m_Name: BCiencias
     m_Texture: {fileID: 2800000, guid: b09ad1007c2ab0f4c8363144911eb7ef, type: 3}

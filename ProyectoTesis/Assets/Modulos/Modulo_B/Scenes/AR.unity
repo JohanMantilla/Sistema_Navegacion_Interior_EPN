@@ -414,38 +414,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: a79441f348de89743a2939f4d699eac1, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_RenderShadows: 1
-  m_RequiresDepthTextureOption: 2
-  m_RequiresOpaqueTextureOption: 2
-  m_CameraType: 0
-  m_Cameras: []
-  m_RendererIndex: -1
-  m_VolumeLayerMask:
-    serializedVersion: 2
-    m_Bits: 1
-  m_VolumeTrigger: {fileID: 0}
-  m_VolumeFrameworkUpdateModeOption: 2
-  m_RenderPostProcessing: 0
-  m_Antialiasing: 0
-  m_AntialiasingQuality: 2
-  m_StopNaN: 0
-  m_Dithering: 0
-  m_ClearDepth: 1
-  m_AllowXRRendering: 1
-  m_AllowHDROutput: 1
-  m_UseScreenCoordOverride: 0
-  m_ScreenSizeOverride: {x: 0, y: 0, z: 0, w: 0}
-  m_ScreenCoordScaleBias: {x: 0, y: 0, z: 0, w: 0}
-  m_RequiresDepthTexture: 0
-  m_RequiresColorTexture: 0
-  m_Version: 2
-  m_TaaSettings:
-    m_Quality: 3
-    m_FrameInfluence: 0.1
-    m_JitterScale: 1
-    m_MipBias: 0
-    m_VarianceClampScale: 0.9
-    m_ContrastAdaptiveSharpening: 0
 --- !u!1 &452570467
 GameObject:
   m_ObjectHideFlags: 0
@@ -508,8 +476,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 83e4e6cca11330d4088d729ab4fc9d9f, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_StartingHoverFilters: []
-  m_StartingSelectFilters: []
 --- !u!4 &592218628
 Transform:
   m_ObjectHideFlags: 0
@@ -617,7 +583,6 @@ MonoBehaviour:
   m_Script: {fileID: 11500000, guid: 017c5e3933235514c9520e1dace2a4b2, type: 3}
   m_Name: 
   m_EditorClassIdentifier: 
-  m_ActionAssets: []
 --- !u!114 &852661880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -708,11 +673,11 @@ MonoBehaviour:
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
   - imageName: BGeneral
     displayText: Biblioteca General
-    displayImage: {fileID: 21300000, guid: b0664260e7bd074478abd8fce95e7a7c, type: 3}
+    displayImage: {fileID: 21300000, guid: 50494e1c14bb4474cb17b3ed5f0edaf2, type: 3}
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
-  - imageName: BAdministracion
-    displayText: "Biblioteca de Administraci\xF3n"
-    displayImage: {fileID: 21300000, guid: b0664260e7bd074478abd8fce95e7a7c, type: 3}
+  - imageName: BCiencias
+    displayText: "Biblioteca Ciencias Matem\xE1ticas F\xEDsicas"
+    displayImage: {fileID: 21300000, guid: 382809d62a1b3b34cb2c478eb229ab22, type: 3}
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
   heightOffset: 0.3
 --- !u!1 &1243748587
