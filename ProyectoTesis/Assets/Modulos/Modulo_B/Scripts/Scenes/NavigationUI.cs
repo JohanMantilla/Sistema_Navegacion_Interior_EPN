@@ -3,6 +3,7 @@ using TMPro;
 using UnityEngine;
 using UnityEngine.SceneManagement;
 using UnityEngine.UI;
+
 public class NavigationUI : MonoBehaviour
 {
     private Button btnSettingNavigationUI;
@@ -10,13 +11,15 @@ public class NavigationUI : MonoBehaviour
     private Button btnRouteNavigationUI;
     private TextMeshProUGUI txtLocation;
 
-    public GameObject scrollViewEPNLocations;
+    [SerializeField] private GameObject scrollViewEPNLocations;
     private Button btnArrivalLocation;
     private TextMeshProUGUI txtArrivalLocation;
     private TextMeshProUGUI newLocation;
 
     [SerializeField] private GameObject pnlConfirmationDialog;
-    // Variable estática para controlar si ya se reprodujo el mensaje
+
+    // SOLUCIÓN MÓVIL: Mantener referencia del padre donde buscar
+    [SerializeField] private Transform parentContainer; // Asignar en el Inspector el Canvas o Panel padre
 
     private static bool welcomeMessagePlayed = false;
     private string message = "Bienvenido a la pantalla de navegación. Aquí puedes explorar las rutas disponibles dentro de la Escuela Politécnica Nacional.";
@@ -24,35 +27,40 @@ public class NavigationUI : MonoBehaviour
     void Awake()
     {
         InitializeUIElements();
+        if (scrollViewEPNLocations != null)
+        {
+            scrollViewEPNLocations.SetActive(false);
+        }
     }
+
     private void OnEnable()
     {
         JsonDataManager.OnJsonRouteUpdated += UpdateUI;
         ItemLocation.OnLocationChanged += UpdateArrivalLocation;
-        //ItemLocation.OnSelectLocation += UpdatedUILabel;
     }
+
     private void OnDisable()
     {
         JsonDataManager.OnJsonRouteUpdated -= UpdateUI;
         ItemLocation.OnLocationChanged -= UpdateArrivalLocation;
-        //ItemLocation.OnSelectLocation -= UpdatedUILabel;
     }
+
     private void Start()
     {
         // Limpiar cualquier texto pendiente del TTS antes de empezar
         if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
         {
-            AndroidTTSManager.Instance.Stop(); // Detener y limpiar cola
+            AndroidTTSManager.Instance.Stop();
         }
-        
+
         StartCoroutine(WaitTTS());
     }
 
-    IEnumerator WaitTTS() {
-        float timeout = 10f; // Aumentar tiempo de espera
+    IEnumerator WaitTTS()
+    {
+        float timeout = 10f;
         float elapsed = 0f;
 
-        // Esperar a que AndroidTTSManager esté disponible
         while (AndroidTTSManager.Instance == null && elapsed < timeout)
         {
             elapsed += Time.deltaTime;
@@ -65,7 +73,6 @@ public class NavigationUI : MonoBehaviour
             yield break;
         }
 
-        // Ahora esperar a que TTS se inicialice
         elapsed = 0f;
         while (!AndroidTTSManager.Instance.isInitialize && elapsed < timeout)
         {
@@ -76,9 +83,7 @@ public class NavigationUI : MonoBehaviour
         if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "NavigationUI")
         {
             AndroidTTSManager.Instance.Speak(message);
-            // Marcar que el mensaje ya se reprodujo
             welcomeMessagePlayed = true;
-
         }
         else
         {
@@ -96,27 +101,79 @@ public class NavigationUI : MonoBehaviour
 
         if (txtLocation == null)
             txtLocation = GameObject.Find("Location")?.GetComponent<TextMeshProUGUI>();
-        
+
         if (txtArrivalLocation == null)
         {
             txtArrivalLocation = GameObject.Find("txtArrivalLocation")?.GetComponent<TextMeshProUGUI>();
         }
-        
+
         if (btnArrivalLocation == null)
         {
             btnArrivalLocation = GameObject.Find("btnArrivalLocation")?.GetComponent<Button>();
         }
+
+        // SOLUCIÓN MÓVIL: Método que SÍ funciona en dispositivos
         if (scrollViewEPNLocations == null)
         {
-            scrollViewEPNLocations = GameObject.Find("EPNLocations");
+            // Método 1: Buscar en el contenedor padre específico
+            if (parentContainer != null)
+            {
+                scrollViewEPNLocations = FindChildByName(parentContainer, "EPNLocations");
+            }
+
+            // Método 2: Buscar en todos los Canvas activos
+            if (scrollViewEPNLocations == null)
+            {
+                Canvas[] canvases = FindObjectsOfType<Canvas>();
+                foreach (Canvas canvas in canvases)
+                {
+                    scrollViewEPNLocations = FindChildByName(canvas.transform, "EPNLocations");
+                    if (scrollViewEPNLocations != null) break;
+                }
+            }
+
+            // Método 3: Buscar por componente específico (si EPNLocations tiene un componente único)
+            if (scrollViewEPNLocations == null)
+            {
+                // Ejemplo: si EPNLocations tiene un ScrollRect
+                ScrollRect scrollRect = FindObjectOfType<ScrollRect>();
+                if (scrollRect != null && scrollRect.name == "EPNLocations")
+                {
+                    scrollViewEPNLocations = scrollRect.gameObject;
+                }
+            }
         }
 
-        if (newLocation == null) {
+        if (newLocation == null)
+        {
             newLocation = GameObject.Find("newLocation")?.GetComponent<TextMeshProUGUI>();
         }
 
         AddListeners();
     }
+
+    // MÉTODO AUXILIAR: Buscar recursivamente en hijos (funciona en móviles)
+    private GameObject FindChildByName(Transform parent, string name)
+    {
+        if (parent == null) return null;
+
+        // Buscar en hijos directos
+        for (int i = 0; i < parent.childCount; i++)
+        {
+            Transform child = parent.GetChild(i);
+            if (child.name == name)
+            {
+                return child.gameObject;
+            }
+
+            // Buscar recursivamente en nietos
+            GameObject found = FindChildByName(child, name);
+            if (found != null) return found;
+        }
+
+        return null;
+    }
+
     private void AddListeners()
     {
         if (btnSettingNavigationUI != null)
@@ -124,6 +181,7 @@ public class NavigationUI : MonoBehaviour
             btnSettingNavigationUI.onClick.RemoveAllListeners();
             btnSettingNavigationUI.onClick.AddListener(() => UIManager.Instance.LoadScene("SettingsUI"));
         }
+
         if (btnCameraNavigationUI != null)
         {
             btnCameraNavigationUI.onClick.RemoveAllListeners();
@@ -133,12 +191,13 @@ public class NavigationUI : MonoBehaviour
                     AndroidTTSManager.Instance.Speak("Camará");
                     Invoke(nameof(LoadScene), 2.9f);
                 }
-                else {
+                else
+                {
                     LoadScene();
                 }
-               
             });
         }
+
         if (btnArrivalLocation != null)
         {
             btnArrivalLocation.onClick.RemoveAllListeners();
@@ -146,7 +205,8 @@ public class NavigationUI : MonoBehaviour
         }
     }
 
-    void LoadScene() {
+    void LoadScene()
+    {
         if (AndroidTTSManager.Instance != null)
         {
             AndroidTTSManager.Instance.Stop();
@@ -166,10 +226,12 @@ public class NavigationUI : MonoBehaviour
     void UpdatedUILabel(Location location)
     {
         InitializeUIElements();
-        if (newLocation != null && location != null ) {
+        if (newLocation != null && location != null)
+        {
             newLocation.text = location.nombre;
         }
     }
+
     void UpdateArrivalLocation(string nameLocation)
     {
         InitializeUIElements();
@@ -178,21 +240,48 @@ public class NavigationUI : MonoBehaviour
             txtArrivalLocation.text = nameLocation;
         }
     }
+
     void ShowOrHiddenLocations()
     {
+        // SOLUCIÓN MÓVIL: Re-inicializar si la referencia se perdió
+        if (scrollViewEPNLocations == null)
+        {
+            Debug.LogWarning("scrollViewEPNLocations es null, re-inicializando...");
+            InitializeUIElements();
+        }
+
         if (scrollViewEPNLocations != null)
         {
-            if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize && welcomeMessagePlayed && scrollViewEPNLocations.activeSelf) {
-                AndroidTTSManager.Instance.Speak("Ubicación de destino activada");
+            bool currentState = scrollViewEPNLocations.activeSelf;
+            bool newState = !currentState; // El estado que tendrá DESPUÉS del cambio
+
+            // CORRECCIÓN: Reproducir TTS basado en el NUEVO estado que tendrá
+            if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize && welcomeMessagePlayed)
+            {
+                if (newState) // Si se va a ACTIVAR
+                {
+                    AndroidTTSManager.Instance.Speak("Lista de ubicaciones activada");
+                }
+                else // Si se va a DESACTIVAR
+                {
+                    AndroidTTSManager.Instance.Speak("Lista de ubicaciones desactivada");
+                }
             }
-            scrollViewEPNLocations.SetActive(!scrollViewEPNLocations.activeSelf);
+
+            scrollViewEPNLocations.SetActive(newState);
+
+            // Debug para verificar en dispositivo
+            Debug.Log($"[MOBILE] scrollViewEPNLocations cambió de {currentState} a {scrollViewEPNLocations.activeSelf}");
+        }
+        else
+        {
+            Debug.LogError("[MOBILE] No se pudo encontrar scrollViewEPNLocations en dispositivo");
         }
     }
 
-    // Método opcional para resetear el estado del mensaje (por ejemplo, cuando se reinicia la aplicación)
+
     public static void ResetWelcomeMessage()
     {
         welcomeMessagePlayed = false;
     }
-
 }
