@@ -24,6 +24,9 @@ public class NavigationUI : MonoBehaviour
     private static bool welcomeMessagePlayed = false;
     private string message = "Bienvenido a la pantalla de navegación. Aquí puedes explorar las rutas disponibles dentro de la Escuela Politécnica Nacional.";
 
+    //GPS
+    // 1. Agrega esta variable al principio de tu clase NavigationUI:
+    private bool gpsReady = false;
 
     void Awake()
     {
@@ -38,12 +41,30 @@ public class NavigationUI : MonoBehaviour
     {
         JsonDataManager.OnJsonRouteUpdated += UpdateUI;
         ItemLocation.OnLocationChanged += UpdateArrivalLocation;
+        // NUEVA LÍNEA: Suscribirse al evento GPS
+        SimpleGPSManager.OnGPSReady += OnGPSReady;
     }
 
     private void OnDisable()
     {
         JsonDataManager.OnJsonRouteUpdated -= UpdateUI;
         ItemLocation.OnLocationChanged -= UpdateArrivalLocation;
+        // NUEVA LÍNEA: Suscribirse al evento GPS
+        SimpleGPSManager.OnGPSReady -= OnGPSReady;
+    }
+
+    // 4. Agrega este nuevo método:
+    private void OnGPSReady()
+    {
+        gpsReady = true;
+
+        // Si TTS está listo Y GPS está listo, reproducir mensaje
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize &&
+            SceneManager.GetActiveScene().name == "NavigationUI" && !welcomeMessagePlayed)
+        {
+            AndroidTTSManager.Instance.Speak(message);
+            welcomeMessagePlayed = true;
+        }
     }
 
     private void Start()
@@ -55,8 +76,6 @@ public class NavigationUI : MonoBehaviour
         }
 
         StartCoroutine(WaitTTS());
-       
-
     }
 
     IEnumerator WaitTTS()
@@ -83,14 +102,14 @@ public class NavigationUI : MonoBehaviour
             yield return null;
         }
 
-        if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "NavigationUI")
+        if (AndroidTTSManager.Instance.isInitialize && SceneManager.GetActiveScene().name == "NavigationUI" && gpsReady && !welcomeMessagePlayed)
         {
             AndroidTTSManager.Instance.Speak(message);
             welcomeMessagePlayed = true;
         }
         else
         {
-            Debug.LogWarning("No se pudo inicializar TTS en el tiempo esperado");
+            Debug.LogWarning("No se pudo inicializar TTS en el tiempo esperado Y GPS");
         }
     }
 

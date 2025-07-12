@@ -1,4 +1,5 @@
-﻿using System.Collections;
+﻿using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
 using UnityEngine.UI;
@@ -13,6 +14,7 @@ public class SimpleGPSManager : MonoBehaviour
     [SerializeField] private Button acceptDialog;
     private bool isGPSEnabled = false;
     private bool shouldRestartGPS = false;
+    public static event Action OnGPSReady;
 
     void Start()
     {
@@ -72,6 +74,9 @@ public class SimpleGPSManager : MonoBehaviour
             if (dialog != null)
             {
                 dialog.SetActive(true);
+                if (AndroidTTSManager.Instance.isInitialize) {
+                    AndroidTTSManager.Instance.Speak("El GPS de tu dispositivo está desactivado, activalo por favor.");
+                }
             }
             yield break;
         }
@@ -106,6 +111,7 @@ public class SimpleGPSManager : MonoBehaviour
 
         statusText.text = "GPS Activo";
         isGPSEnabled = true;
+        OnGPSReady?.Invoke();
         gpsCoroutine = StartCoroutine(UpdateLocationLoop());
     }
 
