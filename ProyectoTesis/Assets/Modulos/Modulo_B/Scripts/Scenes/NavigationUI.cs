@@ -24,6 +24,7 @@ public class NavigationUI : MonoBehaviour
     private static bool welcomeMessagePlayed = false;
     private string message = "Bienvenido a la pantalla de navegación. Aquí puedes explorar las rutas disponibles dentro de la Escuela Politécnica Nacional.";
 
+
     void Awake()
     {
         InitializeUIElements();
@@ -54,6 +55,8 @@ public class NavigationUI : MonoBehaviour
         }
 
         StartCoroutine(WaitTTS());
+       
+
     }
 
     IEnumerator WaitTTS()
@@ -203,6 +206,7 @@ public class NavigationUI : MonoBehaviour
             btnArrivalLocation.onClick.RemoveAllListeners();
             btnArrivalLocation.onClick.AddListener(ShowOrHiddenLocations);
         }
+
     }
 
     void LoadScene()
