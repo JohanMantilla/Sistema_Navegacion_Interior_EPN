@@ -1120,7 +1120,7 @@ MonoBehaviour:
   m_PreserveMeshAssetOnDestroy: 0
   assetGuid: 
   m_Mesh: {fileID: 1973894421}
-  m_VersionIndex: 73
+  m_VersionIndex: 77
   m_IsSelectable: 1
   m_SelectedFaces: 
   m_SelectedEdges: []
@@ -1183,14 +1183,16 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   m_Points:
-  - {x: 0, y: 0, z: 0}
+  - {x: -0.0024466198, y: 0, z: -0.011600876}
   - {x: 0.30762982, y: 0, z: 0.24537992}
   - {x: -0.12593251, y: 0, z: 0.79159856}
   - {x: -0.16708142, y: 0, z: 0.8076891}
   - {x: -0.37958583, y: 0, z: 1.0854858}
   - {x: -0.61573064, y: 0, z: 0.89727247}
-  - {x: -0.7013014, y: 0, z: 1.0011779}
-  - {x: -0.7491626, y: 0, z: 0.9675492}
+  - {x: -0.71966696, y: 0, z: 1.0114001}
+  - {x: -0.9184842, y: 0, z: 0.8657016}
+  - {x: -0.6258582, y: 0, z: 0.4450769}
+  - {x: -0.46072158, y: -0.07692307, z: 0.3494737}
   m_Extrude: 1.5
   m_EditMode: 0
   m_FlipNormals: 0
