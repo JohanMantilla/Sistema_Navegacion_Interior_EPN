@@ -18,10 +18,12 @@ public class LocationList : MonoBehaviour
     }
     void AddDataLocations()
     {
-        locations.Add(new Location("Facultad de sistemas", -78.4893317413561, -0.2102156881754021));
-        locations.Add(new Location("Facultad de Quimica", 100, 587));
-        locations.Add(new Location("Facultad de Petroleos", 36, 88));
-        locations.Add(new Location("Teatro", -78.49033786644237, -0.2118316344069575));
+        locations.Add(new Location("Facultad de sistemas", -78.4893317413561f, -0.2102156881754021f));
+        locations.Add(new Location("Facultad de Quimica", 100f, 587f));
+        locations.Add(new Location("Facultad de Petroleos", 36f, 88f));
+        locations.Add(new Location("Teatro", -78.49033786644237f, -0.2118316344069575f));
+        locations.Add(new Location("Casa", -78.48162966183533f, -0.23037450929773165f));
+        //Todo: Lista
     }
     void GenerateDynamicList()
     {

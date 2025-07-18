@@ -17,7 +17,6 @@ public class ItemLocation : MonoBehaviour
     public Button btnCheck;
     public Button btnCancel;
 
-
     public static event Action<Location> OnSelectLocation;
     private const string PERSISTENT_LOCATION = "Persistence_Location"; 
 

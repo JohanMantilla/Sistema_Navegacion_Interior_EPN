@@ -6,15 +6,16 @@ using UnityEngine.UI;
 
 public class SimpleGPSManager : MonoBehaviour
 {
-    public TextMeshProUGUI gpsText;
-    public TextMeshProUGUI statusText;
     public float updateInterval = 2f;
     private Coroutine gpsCoroutine;
     [SerializeField] private GameObject dialog;
     [SerializeField] private Button acceptDialog;
     private bool isGPSEnabled = false;
     private bool shouldRestartGPS = false;
+
     public static event Action OnGPSReady;
+    public static event Action<float, float> OnLocationUpdate; // Evento para enviar coordenadas (latitud, longitud)
+
 
     void Start()
     {
@@ -68,9 +69,9 @@ public class SimpleGPSManager : MonoBehaviour
     {
         if (!Input.location.isEnabledByUser)
         {
-            statusText.text = "GPS deshabilitado por el usuario";
             isGPSEnabled = false;
             // Mostrar el diálogo solo si el GPS está desactivado
+            /*
             if (dialog != null)
             {
                 dialog.SetActive(true);
@@ -78,18 +79,19 @@ public class SimpleGPSManager : MonoBehaviour
                     AndroidTTSManager.Instance.Speak("El GPS de tu dispositivo está desactivado, activalo por favor.");
                 }
             }
+            */
             yield break;
         }
 
         Input.location.Start();
         isGPSEnabled = true;
-
+        /*
         // Ocultar el diálogo si el GPS está activado
         if (dialog != null)
         {
             dialog.SetActive(false);
         }
-
+        */
         int maxWait = 20;
         while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
         {
@@ -100,7 +102,6 @@ public class SimpleGPSManager : MonoBehaviour
         if (Input.location.status == LocationServiceStatus.Failed)
         {
             isGPSEnabled = false;
-            statusText.text = "No se pudo obtener ubicación";
             // Mostrar diálogo si falla
             if (dialog != null)
             {
@@ -109,7 +110,6 @@ public class SimpleGPSManager : MonoBehaviour
             yield break;
         }
 
-        statusText.text = "GPS Activo";
         isGPSEnabled = true;
         OnGPSReady?.Invoke();
         gpsCoroutine = StartCoroutine(UpdateLocationLoop());
@@ -122,7 +122,8 @@ public class SimpleGPSManager : MonoBehaviour
             if (isGPSEnabled && Input.location.status == LocationServiceStatus.Running)
             {
                 LocationInfo li = Input.location.lastData;
-                gpsText.text = $"Lat: {li.latitude:F6}\nLon: {li.longitude:F6}\nAlt: {li.altitude:F1}m\nPrecisión: ±{li.horizontalAccuracy:F1}m";
+                OnLocationUpdate?.Invoke(li.longitude, li.latitude);
+
             }
             yield return new WaitForSeconds(updateInterval);
         }
