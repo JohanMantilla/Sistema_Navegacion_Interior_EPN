@@ -71,7 +71,7 @@ public class SimpleGPSManager : MonoBehaviour
         {
             isGPSEnabled = false;
             // Mostrar el diálogo solo si el GPS está desactivado
-            /*
+            
             if (dialog != null)
             {
                 dialog.SetActive(true);
@@ -79,19 +79,19 @@ public class SimpleGPSManager : MonoBehaviour
                     AndroidTTSManager.Instance.Speak("El GPS de tu dispositivo está desactivado, activalo por favor.");
                 }
             }
-            */
+            
             yield break;
         }
 
         Input.location.Start();
         isGPSEnabled = true;
-        /*
+        
         // Ocultar el diálogo si el GPS está activado
         if (dialog != null)
         {
             dialog.SetActive(false);
         }
-        */
+        
         int maxWait = 20;
         while (Input.location.status == LocationServiceStatus.Initializing && maxWait > 0)
         {

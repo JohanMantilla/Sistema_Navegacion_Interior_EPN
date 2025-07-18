@@ -15,7 +15,7 @@ public class NavigationUI : MonoBehaviour
     private Button btnArrivalLocation;
     private TextMeshProUGUI txtArrivalLocation;
     private TextMeshProUGUI newLocation;
-    [SerializeField] private TextMeshProUGUI txtPrueba;
+    //[SerializeField] private TextMeshProUGUI txtPrueba;
 
     [SerializeField] private GameObject pnlConfirmationDialog;
 
@@ -44,7 +44,7 @@ public class NavigationUI : MonoBehaviour
         ItemLocation.OnLocationChanged += UpdateArrivalLocation;
         // NUEVA LÍNEA: Suscribirse al evento GPS
         SimpleGPSManager.OnGPSReady += OnGPSReady;
-        SimpleGPSManager.OnLocationUpdate += updatedUII;
+        //ItemLocation.OnChangeEndPosition += updatedUII;
     }
 
     private void OnDisable()
@@ -53,9 +53,10 @@ public class NavigationUI : MonoBehaviour
         ItemLocation.OnLocationChanged -= UpdateArrivalLocation;
         // NUEVA LÍNEA: Suscribirse al evento GPS
         SimpleGPSManager.OnGPSReady -= OnGPSReady;
-        SimpleGPSManager.OnLocationUpdate += updatedUII;
+        //ItemLocation.OnChangeEndPosition -= updatedUII;
     }
 
+    /*
     private void updatedUII(float longitude, float latitude) {
         InitializeUIElements();
         if (txtPrueba != null && longitude != null && latitude != null)
@@ -63,6 +64,7 @@ public class NavigationUI : MonoBehaviour
             txtPrueba.text = longitude.ToString() + latitude.ToString();
         }
     }
+    */
 
     // 4. Agrega este nuevo método:
     private void OnGPSReady()
@@ -138,11 +140,6 @@ public class NavigationUI : MonoBehaviour
         if (txtArrivalLocation == null)
         {
             txtArrivalLocation = GameObject.Find("txtArrivalLocation")?.GetComponent<TextMeshProUGUI>();
-        }
-
-        if (txtPrueba == null)
-        {
-            txtPrueba = GameObject.Find("txtPrueba")?.GetComponent<TextMeshProUGUI>();
         }
 
         if (btnArrivalLocation == null)
