@@ -47,3 +47,33 @@ MonoBehaviour:
     m_SpecifySize: 1
     m_Name: BCiencias
     m_Texture: {fileID: 2800000, guid: b09ad1007c2ab0f4c8363144911eb7ef, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 4827125558690432487
+      m_GuidHigh: 8483149610095613357
+    m_SerializedTextureGuid:
+      m_GuidLow: 10458616384553661609
+      m_GuidHigh: 5435706880874053577
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BQuimica
+    m_Texture: {fileID: 2800000, guid: 8b66b4a978309124c9ffa4c99b826f4b, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5376977225140546570
+      m_GuidHigh: 5615028800527625117
+    m_SerializedTextureGuid:
+      m_GuidLow: 9913560656736040740
+      m_GuidHigh: 18173034498365152859
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BElectrica
+    m_Texture: {fileID: 2800000, guid: 9c0a37240ae489945b5ef965979633fc, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5032960298491225187
+      m_GuidHigh: 9680828769967466148
+    m_SerializedTextureGuid:
+      m_GuidLow: 7535820832471765431
+      m_GuidHigh: 9544492471220178570
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BFBasica
+    m_Texture: {fileID: 2800000, guid: e277d1b79d1e68948a0e786c55d97484, type: 3}

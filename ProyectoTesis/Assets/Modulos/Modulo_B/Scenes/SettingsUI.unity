@@ -820,7 +820,7 @@ GameObject:
   - component: {fileID: 233535901}
   - component: {fileID: 233535900}
   m_Layer: 5
-  m_Name: btnCameraPermission
+  m_Name: btnAR
   m_TagString: Untagged
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
@@ -2576,7 +2576,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &830432170
 GameObject:
   m_ObjectHideFlags: 0
@@ -4966,7 +4966,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &1654345517
 GameObject:
   m_ObjectHideFlags: 0
@@ -6455,7 +6455,7 @@ MonoBehaviour:
   onValueChanged:
     m_PersistentCalls:
       m_Calls: []
-  m_IsOn: 1
+  m_IsOn: 0
 --- !u!1 &2080061621
 GameObject:
   m_ObjectHideFlags: 0

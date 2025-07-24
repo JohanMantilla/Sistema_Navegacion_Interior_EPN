@@ -679,6 +679,18 @@ MonoBehaviour:
     displayText: "Biblioteca Ciencias Matem\xE1ticas F\xEDsicas"
     displayImage: {fileID: 21300000, guid: 382809d62a1b3b34cb2c478eb229ab22, type: 3}
     textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
+  - imageName: BQuimica
+    displayText: "Biblioteca de Ingenier\xEDa Qu\xEDmica y Agroindustria"
+    displayImage: {fileID: 21300000, guid: 9718ad700e520514aa76c3d998abfaf0, type: 3}
+    textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
+  - imageName: BElectrica
+    displayText: "Biblioteca de Ingenier\xEDa El\xE9ctrica y Electr\xF3nica"
+    displayImage: {fileID: 21300000, guid: 0cecf932f67033345b51d5075baf3cd5, type: 3}
+    textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
+  - imageName: BFBasica
+    displayText: "Biblioteca de Formaci\xF3n B\xE1sica"
+    displayImage: {fileID: 21300000, guid: 6af0a81e0190dc84f9e1fcd88d6b4976, type: 3}
+    textColor: {r: 0, g: 0.05490196, b: 0.19607843, a: 1}
   heightOffset: 0.3
 --- !u!1 &1243748587
 GameObject:
