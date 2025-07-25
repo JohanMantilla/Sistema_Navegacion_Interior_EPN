@@ -17,8 +17,8 @@ public class ItemLocation : MonoBehaviour
     public Button btnCheck;
     public Button btnCancel;
 
-
     public static event Action<Location> OnSelectLocation;
+    public static event Action<float,float> OnChangeEndPosition;
     private const string PERSISTENT_LOCATION = "Persistence_Location"; 
 
     void Awake()
@@ -99,7 +99,8 @@ public class ItemLocation : MonoBehaviour
         OnLocationChanged?.Invoke(locationItemModel.nombre);
         // aca envio
         OnSelectLocation?.Invoke(locationItemModel);
-
+        // aca envio a Erika
+        OnChangeEndPosition?.Invoke(locationItemModel.longitude,locationItemModel.latitude);
 
         Invoke(nameof(hiddenConfirmationDialog), 0.5f);
     }

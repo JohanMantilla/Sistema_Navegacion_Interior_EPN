@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using Newtonsoft.Json;
-using NUnit.Framework;
 using UnityEngine;
 
 public class ObjectDetection
