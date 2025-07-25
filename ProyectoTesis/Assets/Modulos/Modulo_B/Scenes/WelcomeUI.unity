@@ -791,6 +791,7 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scrollViewEPNLocations: {fileID: 0}
   pnlConfirmationDialog: {fileID: 0}
+  parentContainer: {fileID: 0}
 --- !u!1 &766125748
 GameObject:
   m_ObjectHideFlags: 0
