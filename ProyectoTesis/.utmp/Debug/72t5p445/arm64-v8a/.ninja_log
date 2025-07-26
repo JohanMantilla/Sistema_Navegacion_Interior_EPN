@@ -1,10 +1,10 @@
 # ninja log v5
-46	2002	7740669561766073	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	ddffda882b9a880f
-64	2045	7740669562159495	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	4076dd903db7a2d3
-1	2062	7740669562359289	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	6ff6eaf17f2a59a
-135	2161	7740669563405075	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	2bbf2eb35614d391
-30	2185	7740669563679435	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	aac3961ed0a701a5
-111	2215	7740669564014731	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	9d7681cb9ca492b0
-88	2413	7740669565943138	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	c2e625d54e06d998
-15	2452	7740669566307706	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	ea3591b3980c7731
-2453	2683	7740669568542000	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/72t5p445/obj/arm64-v8a/libgame.so	62f03b014979aa0b
+104	3470	7752093147441039	GameActivity/CMakeFiles/game.dir/UGAInputKeyEvent.cpp.o	ddffda882b9a880f
+71	3543	7752093148136134	GameActivity/CMakeFiles/game.dir/UGAConfiguration.cpp.o	6ff6eaf17f2a59a
+180	3681	7752093149529128	GameActivity/CMakeFiles/game.dir/UGAEntry.cpp.o	4076dd903db7a2d3
+224	3728	7752093150052716	GameActivity/CMakeFiles/game.dir/UGAInputMotionEvent.cpp.o	2bbf2eb35614d391
+2	3820	7752093151029738	GameActivity/CMakeFiles/game.dir/UGADebug.cpp.o	aac3961ed0a701a5
+269	3825	7752093151029738	GameActivity/CMakeFiles/game.dir/UGASoftKeyboard.cpp.o	9d7681cb9ca492b0
+141	4007	7752093153007842	GameActivity/CMakeFiles/game.dir/UGAInput.cpp.o	c2e625d54e06d998
+34	4127	7752093154153933	GameActivity/CMakeFiles/game.dir/UGAApplication.cpp.o	ea3591b3980c7731
+4127	4591	7752093158421177	C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/Library/Bee/Android/Prj/IL2CPP/Gradle/unityLibrary/build/intermediates/cxx/Debug/72t5p445/obj/arm64-v8a/libgame.so	62f03b014979aa0b

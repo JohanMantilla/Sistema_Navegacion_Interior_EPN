@@ -5150,8 +5150,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   btnCameraPermission: {fileID: 0}
   btnLocationPermission: {fileID: 0}
-  tglVisualTypeSignal: {fileID: 0}
-  tglAuditiveTypeSignal: {fileID: 0}
   btnNextSettingsUI: {fileID: 0}
   imgVolume: {fileID: 0}
   sprWithOutVolume: {fileID: 0}
@@ -5163,6 +5161,11 @@ MonoBehaviour:
   slider: {fileID: 0}
   message: "Pantalla de configuraci\xF3n"
   controlSystemVolume: 1
+  tglShowObjectInformation: {fileID: 0}
+  tglShowMapMarkers: {fileID: 0}
+  tglDrawBbox: {fileID: 0}
+  tglVisualTypeSignal: {fileID: 0}
+  tglAuditiveTypeSignal: {fileID: 0}
 --- !u!4 &1705452995
 Transform:
   m_ObjectHideFlags: 0
@@ -6467,8 +6470,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   apiKey: AIzaSyDfGA3dKIHKSW7RvU5HPbZ6fUkRiyBVdik
   mapImage: {fileID: 522728881}
-  centerLatitude: -0.21007054148416407
-  centerLongitude: -78.48929972012172
+  centerLatitude: -0.22801878963990962
+  centerLongitude: -78.48375901895291
   zoom: 17
   mapWidth: 680
   mapHeight: 680
