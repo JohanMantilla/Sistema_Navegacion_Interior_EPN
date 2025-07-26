@@ -1,18 +1,15 @@
 using System;
+using System.Collections;
 using TMPro;
 using UnityEngine;
-using UnityEngine.UI;
 using UnityEngine.Android;
-using System.Collections;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class SettingsUI : MonoBehaviour
 {
     [SerializeField] private Button btnCameraPermission;
     [SerializeField] private Button btnLocationPermission;
-
-    [SerializeField] private Toggle tglVisualTypeSignal;
-    [SerializeField] private Toggle tglAuditiveTypeSignal;
     [SerializeField] private Button btnNextSettingsUI;
     [SerializeField] private Image imgVolume;
     [SerializeField] private Sprite sprWithOutVolume;
@@ -25,11 +22,18 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private string message = "Pantalla de configuración";
     [SerializeField] private bool controlSystemVolume = true;
 
+    [SerializeField] private Toggle tglShowObjectInformation;
+    [SerializeField] private Toggle tglShowMapMarkers;
+    [SerializeField] private Toggle tglDrawBbox;
+    [SerializeField] private Toggle tglVisualTypeSignal;
+    [SerializeField] private Toggle tglAuditiveTypeSignal;
 
-    // Eventos estáticos
     public static event Action<bool> onVisualActive;
     public static event Action<bool> onAuditiveActive;
     public static event Action<float> onSliderVolumeChange;
+    public static event Action<bool> onObjectInformationActive;
+    public static event Action<bool> onMapMarkersActive;
+    public static event Action<bool> onDrawBboxActive;
 
     private bool isInitialized = false;
     private AndroidJavaObject audioManager;
@@ -154,17 +158,31 @@ public class SettingsUI : MonoBehaviour
             tglVisualTypeSignal.onValueChanged.AddListener(OnVisualToggleChanged);
         }
 
-
         if (tglAuditiveTypeSignal != null)
         {
             tglAuditiveTypeSignal.onValueChanged.AddListener(OnAuditiveToggleChanged);
         }
 
-
         if (slider != null)
         {
             slider.onValueChanged.AddListener(OnSliderVolumeChange);
         }
+
+        if (tglShowObjectInformation != null) {
+            tglShowObjectInformation.onValueChanged.AddListener(OnShowObjectInformationChanged);
+        }
+
+        if (tglShowMapMarkers != null)
+        {
+            tglShowMapMarkers.onValueChanged.AddListener(OnShowMapMarkersChanged);
+        }
+
+        if (tglDrawBbox != null)
+        {
+            tglDrawBbox.onValueChanged.AddListener(OntglDrawBboxChanged);
+        }
+
+
     }
 
     void RemoveAllListeners()
@@ -173,6 +191,7 @@ public class SettingsUI : MonoBehaviour
         tglVisualTypeSignal?.onValueChanged.RemoveAllListeners();
         tglAuditiveTypeSignal?.onValueChanged.RemoveAllListeners();
         slider?.onValueChanged.RemoveAllListeners();
+        
     }
 
     void LoadScene() {
@@ -207,11 +226,32 @@ public class SettingsUI : MonoBehaviour
                 slider.SetValueWithoutNotify(volumeValue);
             UpdateVolumeUI(volumeValue);
         }
+
+        if (PlayerPrefs.HasKey("ShowObjectInformationChanged"))
+        {
+            bool showObj = PlayerPrefs.GetInt("ShowObjectInformationChanged", 0) == 1;
+            if (tglShowObjectInformation != null)
+                tglShowObjectInformation.SetIsOnWithoutNotify(showObj);
+        }
+
+        if (PlayerPrefs.HasKey("ShowMapMarkers"))
+        {
+            bool showMapMarkers = PlayerPrefs.GetInt("ShowMapMarkers", 0) == 1;
+            if (tglShowMapMarkers != null)
+                tglShowMapMarkers.SetIsOnWithoutNotify(showMapMarkers);
+        }
+        
+        if (PlayerPrefs.HasKey("DrawBbox"))
+        {
+            bool drawBbox = PlayerPrefs.GetInt("DrawBbox", 0) == 1;
+            if (tglDrawBbox != null)
+                tglDrawBbox.SetIsOnWithoutNotify(drawBbox);
+        }
     }
 
     void LoadAndApplyPreferences()
     {
-
+        //TODO: Eliminar evento porque creo que es innecesario
         if (PlayerPrefs.HasKey("VisualTogglePreferences"))
         {
             bool visualValue = PlayerPrefs.GetInt("VisualTogglePreferences", 0) == 1;
@@ -229,21 +269,54 @@ public class SettingsUI : MonoBehaviour
             float volumeValue = PlayerPrefs.GetFloat("VolumePreferences", 0.5f);
             onSliderVolumeChange?.Invoke(volumeValue * 100f);
         }
+
+        if (PlayerPrefs.HasKey("ShowObjectInformationChanged")) {
+            bool showObj = PlayerPrefs.GetInt("ShowObjectInformationChanged", 0) == 1;
+            onObjectInformationActive?.Invoke(showObj);
+        }
+
+        if (PlayerPrefs.HasKey("ShowMapMarkers"))
+        {
+            bool showMapMarkers = PlayerPrefs.GetInt("ShowMapMarkers", 0) == 1;
+            onMapMarkersActive?.Invoke(showMapMarkers);
+        }
+
+        if (PlayerPrefs.HasKey("DrawBbox"))
+        {
+            bool drawBbox = PlayerPrefs.GetInt("DrawBbox", 0) == 1;
+            onDrawBboxActive?.Invoke(drawBbox);
+        }
     }
 
     void OnVisualToggleChanged(bool isOn)
     {
-        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize) {
+        onVisualActive?.Invoke(isOn);
+
+        if(tglShowObjectInformation != null) {
+            tglShowObjectInformation.isOn = isOn;
+        }
+
+        if (tglShowMapMarkers != null) {
+            tglShowMapMarkers.isOn = isOn;
+        }
+
+        if (tglDrawBbox != null)
+        {
+            tglDrawBbox.isOn = isOn;
+        }
+
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
             if (isOn)
             {
                 AndroidTTSManager.Instance.Speak("Señales visuales activas");
             }
-            else {
+            else
+            {
                 AndroidTTSManager.Instance.Speak("Señales visuales desactivadas");
             }
         }
 
-        onVisualActive?.Invoke(isOn);
         PlayerPrefs.SetInt("VisualTogglePreferences", isOn ? 1 : 0);
         PlayerPrefs.Save();
     }
@@ -296,6 +369,65 @@ public class SettingsUI : MonoBehaviour
             }
         }
 
+    }
+
+    void OnShowObjectInformationChanged(bool isOn) {
+
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Información de objetos activada");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Información de objetos desactivadas");
+            }
+        }
+
+        onObjectInformationActive?.Invoke(isOn);
+        Debug.Log("--------------EL TOGGLE ShowObjectInformation----------- " + isOn);
+        PlayerPrefs.SetInt("ShowObjectInformationChanged", isOn ? 1 : 0);
+        PlayerPrefs.Save();
+
+    }
+
+    void OnShowMapMarkersChanged(bool isOn) {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Marcadores de mapa activado");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Marcadores de mapa desactivado");
+            }
+        }
+
+        onMapMarkersActive?.Invoke(isOn);
+        Debug.Log("--------------EL TOGGLE ShowMapMarkers----------- " + isOn);
+        PlayerPrefs.SetInt("ShowMapMarkers", isOn ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+
+    void OntglDrawBboxChanged(bool isOn) {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Resaltar objeto activado");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Resaltar objeto desactivado");
+            }
+        }
+
+        onDrawBboxActive?.Invoke(isOn);
+        Debug.Log("--------------EL TOGGLE DrawBbox----------- " + isOn);
+        PlayerPrefs.SetInt("DrawBbox", isOn ? 1 : 0);
+        PlayerPrefs.Save();
     }
 
     private void UpdateVolumeUI(float newVolume)

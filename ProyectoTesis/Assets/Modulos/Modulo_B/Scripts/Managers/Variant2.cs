@@ -39,6 +39,8 @@ public class Variant2 : MonoBehaviour
     private Vector2 lastGPSPosition = Vector2.zero;
     private bool isGPSReady = false;
 
+    private bool showMapMarkers = true;
+
     void Start()
     {
         if (mapLoader == null)
@@ -65,6 +67,7 @@ public class Variant2 : MonoBehaviour
 
         // Solo suscribirse al evento para el marcador de fin
         ItemLocation.OnSelectLocation += PositionEndMarker;
+        SettingsUI.onMapMarkersActive += OnMapMarkersActiveChanged;
     }
 
     void Update()
@@ -85,6 +88,27 @@ public class Variant2 : MonoBehaviour
         }
 
         ItemLocation.OnSelectLocation -= PositionEndMarker;
+        SettingsUI.onMapMarkersActive -= OnMapMarkersActiveChanged;
+    }
+    // 4. NUEVOS MÉTODOS (agregar después de OnDestroy)
+    void OnMapMarkersActiveChanged(bool isActive)
+    {
+        showMapMarkers = isActive;
+        UpdateMarkersVisibility();
+    }
+
+    void UpdateMarkersVisibility()
+    {
+        if (startMarker != null)
+        {
+            startMarker.gameObject.SetActive(showMapMarkers);
+        }
+
+        if (endMarker != null)
+        {
+            // Solo mostrar el marcador de fin si showMapMarkers es true Y ya se ha posicionado
+            endMarker.gameObject.SetActive(showMapMarkers && endLat != 0 && endLng != 0);
+        }
     }
 
     void OnGPSReady()
@@ -157,6 +181,8 @@ public class Variant2 : MonoBehaviour
 
         Vector2 startPos = mapLoader.LatLngToMapPosition(startLat, startLng);
         startMarker.anchoredPosition = startPos;
+        // Aplicar visibilidad basada en la configuración
+        startMarker.gameObject.SetActive(showMapMarkers);
         Debug.Log($"🎯 Marcador de inicio posicionado en: {startLat:F6}, {startLng:F6}");
     }
 
@@ -169,6 +195,9 @@ public class Variant2 : MonoBehaviour
         endLng = location.longitude;
         Vector2 endPos = mapLoader.LatLngToMapPosition(endLat, endLng);
         endMarker.anchoredPosition = endPos;
+
+        // Aplicar visibilidad basada en la configuración
+        endMarker.gameObject.SetActive(showMapMarkers);
         Debug.Log($"🏁 Marcador de fin posicionado en: {endLat:F6}, {endLng:F6}");
 
         // Redibujar el path cuando se posiciona el marcador de fin
