@@ -8,6 +8,8 @@ public class ClipManager : MonoBehaviour
     private float minRangeAlert = 0.2f;
     private float maxRangeAlert = 6f;
     private string currentAlertObject = null;
+    private bool isAuditiveActive = true; // Estado de las señales auditivas
+
     private Dictionary<string, float> dangerLevelObjects = new Dictionary<string, float>() {
         {"car", 10},
         {"motorcycle", 9},
@@ -35,17 +37,38 @@ public class ClipManager : MonoBehaviour
 
     void Start()
     {
-
+        LoadAuditivePreferences();
     }
 
     private void OnEnable()
     {
         WebSocketClient.OnChangeObjectionDetection += GetNearestDangerousObject;
+        SettingsUI.onAuditiveActive += OnAuditiveActiveChanged;
     }
 
     private void OnDisable()
     {
         WebSocketClient.OnChangeObjectionDetection -= GetNearestDangerousObject;
+        SettingsUI.onAuditiveActive -= OnAuditiveActiveChanged;
+    }
+
+    private void LoadAuditivePreferences()
+    {
+        if (PlayerPrefs.HasKey("AuditiveTogglePreferences"))
+        {
+            isAuditiveActive = PlayerPrefs.GetInt("AuditiveTogglePreferences", 1) == 1;
+        }
+    }
+
+    private void OnAuditiveActiveChanged(bool isActive)
+    {
+        isAuditiveActive = isActive;
+
+        // Si se desactivan las señales auditivas y hay un sonido reproduciéndose, lo detenemos
+        if (!isAuditiveActive && currentAlertObject != null)
+        {
+            StopClip();
+        }
     }
 
     private void GetNearestDangerousObject(ObjectDetection data)
@@ -68,7 +91,6 @@ public class ClipManager : MonoBehaviour
                 }
             }
         }
-
         PlayAlertToNearestDangerousObject(mostDangerousObject);
     }
 
@@ -76,10 +98,7 @@ public class ClipManager : MonoBehaviour
     {
         if (mostDangerousObject != null)
         {
-            if (currentAlertObject != mostDangerousObject.name)
-            {
-                PlayProximityAlert(mostDangerousObject.name);
-            }
+            PlayProximityAlert(mostDangerousObject.name);
         }
         else
         {
@@ -92,15 +111,18 @@ public class ClipManager : MonoBehaviour
 
     void PlayProximityAlert(string nearestObject)
     {
-        if (alertSound != null && audioSource != null)
+        // Solo reproducir si las señales auditivas están activas
+        if (isAuditiveActive && alertSound != null && audioSource != null)
         {
             currentAlertObject = nearestObject;
             audioSource.clip = alertSound;
             ChangeVolume(0.1f);
             audioSource.Play();
         }
-        else {
-            return;
+        else if (!isAuditiveActive)
+        {
+            // Si las señales auditivas están desactivadas, solo actualizar el objeto actual sin reproducir
+            currentAlertObject = nearestObject;
         }
     }
 
