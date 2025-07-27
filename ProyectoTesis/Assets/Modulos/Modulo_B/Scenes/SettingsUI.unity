@@ -4835,6 +4835,7 @@ GameObject:
   - component: {fileID: 1507246086}
   - component: {fileID: 1507246087}
   - component: {fileID: 1507246089}
+  - component: {fileID: 1507246090}
   m_Layer: 0
   m_Name: SceneManager
   m_TagString: Untagged
@@ -4884,6 +4885,19 @@ MonoBehaviour:
   scrollViewEPNLocations: {fileID: 0}
   pnlConfirmationDialog: {fileID: 0}
   parentContainer: {fileID: 0}
+--- !u!114 &1507246090
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1507246083}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c864ec1c468ec1d429e6e2d86b54f90f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  btnNavigation: {fileID: 0}
 --- !u!1 &1636660699
 GameObject:
   m_ObjectHideFlags: 0

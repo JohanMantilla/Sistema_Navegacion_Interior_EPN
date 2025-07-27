@@ -26,6 +26,9 @@ public class DrawBbox : MonoBehaviour
 
     private List<GameObject> activeBBoxes = new List<GameObject>();
 
+    private bool showTextObjectInformation = true;
+    private bool showDrawBbox = true;
+
     void Start()
     {
         WebSocketClient.OnChangeObjectionDetection += OnObjectDetectionUpdated;

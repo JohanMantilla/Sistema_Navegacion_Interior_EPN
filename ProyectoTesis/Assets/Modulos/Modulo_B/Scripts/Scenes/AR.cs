@@ -4,7 +4,7 @@ using UnityEngine.UI;
 public class AR : MonoBehaviour
 {
     private Button btnRoute;
-    private Button btnCameraAR;
+    [SerializeField] private Button btnNavigation;
 
     void Awake()
     {
@@ -13,33 +13,20 @@ public class AR : MonoBehaviour
 
     void Start()
     {
-        
-    }
-
-    void Update()
-    {
-        
+        //InitializeUIElements();
     }
 
     void InitializeUIElements() {
-        if (btnRoute == null) {
-            btnRoute = GameObject.Find("btnRoute")?.GetComponent<Button>();
-        }
-
-        if (btnCameraAR == null)
-        {
-            btnCameraAR = GameObject.Find("btnCameraAR")?.GetComponent<Button>();
-        }
-
+        
         AddListeners();
     }
-
+    
     void AddListeners() {
-        if (btnRoute != null) {
-            btnRoute.onClick.RemoveAllListeners();
-            btnRoute.onClick.AddListener(()=>UIManager.Instance.LoadScene("NavigationUI"));
+        if(btnNavigation != null)
+        {
+            btnNavigation.onClick.RemoveAllListeners();
+            btnNavigation.onClick.AddListener(() => UIManager.Instance.LoadScene("NavigationUI"));
         }
-
     }
 
 }
