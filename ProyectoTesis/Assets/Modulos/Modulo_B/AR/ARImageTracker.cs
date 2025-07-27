@@ -1,9 +1,9 @@
 using System.Collections.Generic;
+using TMPro;
 using UnityEngine;
+using UnityEngine.UI;
 using UnityEngine.XR.ARFoundation;
 using UnityEngine.XR.ARSubsystems;
-using TMPro;
-using UnityEngine.UI;
 
 public class ARImageTracker : MonoBehaviour
 {
@@ -22,6 +22,9 @@ public class ARImageTracker : MonoBehaviour
 
     // Diccionario para mantener track de los objetos instanciados
     private Dictionary<TrackableId, GameObject> instantiatedObjects = new Dictionary<TrackableId, GameObject>();
+
+    // Control de activación
+    private bool isARInformationActive = false;
 
     [System.Serializable]
     public class ImageContent
@@ -45,6 +48,18 @@ public class ARImageTracker : MonoBehaviour
         }
     }
 
+    void OnEnable()
+    {
+        // Suscribirse al evento de SettingsUI
+        SettingsUI.onARInformationActive += OnARInformationActiveChanged;
+    }
+
+    void OnDisable()
+    {
+        // Desuscribirse del evento
+        SettingsUI.onARInformationActive -= OnARInformationActiveChanged;
+    }
+
     void OnDestroy()
     {
         // Desuscribirse del evento para evitar memory leaks
@@ -54,8 +69,28 @@ public class ARImageTracker : MonoBehaviour
         }
     }
 
+    void OnARInformationActiveChanged(bool isActive)
+    {
+        isARInformationActive = isActive;
+
+        // Si se desactiva, ocultar todos los objetos existentes
+        if (!isActive)
+        {
+            HideAllTrackedObjects();
+        }
+        // Si se activa, mostrar objetos que estén siendo rastreados
+        else
+        {
+            ShowActiveTrackedObjects();
+        }
+    }
+
     void OnTrackedImagesChanged(ARTrackablesChangedEventArgs<ARTrackedImage> eventArgs)
     {
+        // Solo procesar si AR Information está activo
+        if (!isARInformationActive)
+            return;
+
         // Manejar nuevas imágenes detectadas
         foreach (var trackedImage in eventArgs.added)
         {
@@ -120,6 +155,33 @@ public class ARImageTracker : MonoBehaviour
             Destroy(contentObject);
             instantiatedObjects.Remove(trackableId);
             Debug.Log("Imagen removida del tracking");
+        }
+    }
+
+    void HideAllTrackedObjects()
+    {
+        foreach (var contentObject in instantiatedObjects.Values)
+        {
+            if (contentObject != null)
+            {
+                contentObject.SetActive(false);
+            }
+        }
+    }
+
+    void ShowActiveTrackedObjects()
+    {
+        foreach (var kvp in instantiatedObjects)
+        {
+            if (kvp.Value != null)
+            {
+                // Solo mostrar si la imagen está siendo rastreada activamente
+                var trackedImage = trackedImageManager.trackables[kvp.Key];
+                if (trackedImage != null && trackedImage.trackingState == TrackingState.Tracking)
+                {
+                    kvp.Value.SetActive(true);
+                }
+            }
         }
     }
 

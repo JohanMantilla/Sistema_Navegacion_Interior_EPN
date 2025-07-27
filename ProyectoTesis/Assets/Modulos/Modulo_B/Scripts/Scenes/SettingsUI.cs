@@ -10,6 +10,7 @@ public class SettingsUI : MonoBehaviour
 {
     [SerializeField] private Button btnCameraPermission;
     [SerializeField] private Button btnLocationPermission;
+
     [SerializeField] private Button btnNextSettingsUI;
     [SerializeField] private Image imgVolume;
     [SerializeField] private Sprite sprWithOutVolume;
@@ -28,12 +29,21 @@ public class SettingsUI : MonoBehaviour
     [SerializeField] private Toggle tglVisualTypeSignal;
     [SerializeField] private Toggle tglAuditiveTypeSignal;
 
+    [SerializeField] private Button btnARInformation;
+    [Header("Sprites")]
+    [SerializeField] private Sprite spriteBarOn;
+    [SerializeField] private Sprite spriteBarOff;
+    [Header("Button Image Property")]
+    [SerializeField] private Image btnARInformationImage;
+    private bool ARInformationActivated = false;
+
     public static event Action<bool> onVisualActive;
     public static event Action<bool> onAuditiveActive;
     public static event Action<float> onSliderVolumeChange;
     public static event Action<bool> onObjectInformationActive;
     public static event Action<bool> onMapMarkersActive;
     public static event Action<bool> onDrawBboxActive;
+    public static event Action<bool> onARInformationActive;
 
     private bool isInitialized = false;
     private AndroidJavaObject audioManager;
@@ -181,8 +191,14 @@ public class SettingsUI : MonoBehaviour
         {
             tglDrawBbox.onValueChanged.AddListener(OntglDrawBboxChanged);
         }
-
-
+        /*
+        if (btnARInformation != null) {
+            btnARInformation.onClick.AddListener(OnARInformationChanged);
+        }
+        */
+        if (btnARInformation != null) {
+            btnARInformation.onClick.AddListener(UpdatedARInformationOnClick);
+        }
     }
 
     void RemoveAllListeners()
@@ -247,6 +263,13 @@ public class SettingsUI : MonoBehaviour
             if (tglDrawBbox != null)
                 tglDrawBbox.SetIsOnWithoutNotify(drawBbox);
         }
+
+        if (PlayerPrefs.HasKey("ARInformation"))
+        {
+            ARInformationActivated = PlayerPrefs.GetInt("ARInformation", 0) == 1;
+            changeSpriteARBarOnClick(); // Actualizar sprite inicial
+        }
+        
     }
 
     void LoadAndApplyPreferences()
@@ -285,6 +308,48 @@ public class SettingsUI : MonoBehaviour
         {
             bool drawBbox = PlayerPrefs.GetInt("DrawBbox", 0) == 1;
             onDrawBboxActive?.Invoke(drawBbox);
+        }
+        
+        if (PlayerPrefs.HasKey("ARInformation"))
+        {
+            bool ARLibrariesInformation = PlayerPrefs.GetInt("ARInformation", 0) == 1;
+            ARInformationActivated = ARLibrariesInformation;
+            onARInformationActive?.Invoke(ARLibrariesInformation);
+            changeSpriteARBarOnClick(); // Actualizar sprite
+        }
+        
+    }
+    void changeSpriteARBarOnClick()
+    {
+        if (btnARInformationImage != null)
+        {
+            btnARInformationImage.sprite = ARInformationActivated ? spriteBarOn : spriteBarOff;
+        }
+    }
+
+    void UpdatedARInformationOnClick() {
+        // Primero cambiar el estado
+        ARInformationActivated = !ARInformationActivated;
+        changeSpriteARBarOnClick();
+
+        // Invocar el evento
+        onARInformationActive?.Invoke(ARInformationActivated);
+        //Debug.Log("EL ESTADOOOOOOOOOOOO : " + ARInformationActivated);
+
+        // Guardar en PlayerPrefs
+        PlayerPrefs.SetInt("ARInformation", ARInformationActivated ? 1 : 0);
+        PlayerPrefs.Save();
+
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (ARInformationActivated)
+            {
+                AndroidTTSManager.Instance.Speak("Información bibliotecas activado");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Información bibliotecas desactivado");
+            }
         }
     }
 
@@ -429,6 +494,26 @@ public class SettingsUI : MonoBehaviour
         PlayerPrefs.SetInt("DrawBbox", isOn ? 1 : 0);
         PlayerPrefs.Save();
     }
+
+    /*
+    void OnARInformationChanged(bool isOn) {
+        if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize)
+        {
+            if (isOn)
+            {
+                AndroidTTSManager.Instance.Speak("Información bibliotecas activado");
+            }
+            else
+            {
+                AndroidTTSManager.Instance.Speak("Información bibliotecas desactivado");
+            }
+        }
+
+        onARInformationActive?.Invoke(isOn);
+        PlayerPrefs.SetInt("ARInformation", isOn ? 1 : 0);
+        PlayerPrefs.Save();
+    }
+    */
 
     private void UpdateVolumeUI(float newVolume)
     {
