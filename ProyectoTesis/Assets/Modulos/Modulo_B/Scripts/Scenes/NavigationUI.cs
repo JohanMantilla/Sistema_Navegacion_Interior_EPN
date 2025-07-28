@@ -56,16 +56,6 @@ public class NavigationUI : MonoBehaviour
         //ItemLocation.OnChangeEndPosition -= updatedUII;
     }
 
-    /*
-    private void updatedUII(float longitude, float latitude) {
-        InitializeUIElements();
-        if (txtPrueba != null && longitude != null && latitude != null)
-        {
-            txtPrueba.text = longitude.ToString() + latitude.ToString();
-        }
-    }
-    */
-
     // 4. Agrega este nuevo método:
     private void OnGPSReady()
     {
@@ -223,7 +213,7 @@ public class NavigationUI : MonoBehaviour
             btnCameraNavigationUI.onClick.AddListener(() => {
                 if (AndroidTTSManager.Instance != null && AndroidTTSManager.Instance.isInitialize && welcomeMessagePlayed)
                 {
-                    AndroidTTSManager.Instance.Speak("Camará");
+                    AndroidTTSManager.Instance.Speak("Cámara");
                     Invoke(nameof(LoadScene), 2.9f);
                 }
                 else
@@ -253,10 +243,12 @@ public class NavigationUI : MonoBehaviour
     void UpdateUI(Route routeData)
     {
         InitializeUIElements();
+        /*
         if (txtLocation != null && routeData != null)
         {
             txtLocation.text = routeData.route.total_steps.ToString();
         }
+        */
     }
 
     void UpdatedUILabel(Location location)
