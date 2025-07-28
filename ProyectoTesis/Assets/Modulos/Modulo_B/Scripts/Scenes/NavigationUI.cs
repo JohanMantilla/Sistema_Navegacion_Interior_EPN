@@ -240,7 +240,7 @@ public class NavigationUI : MonoBehaviour
         UIManager.Instance.LoadScene("AR");
     }
 
-    void UpdateUI(Route routeData)
+    void UpdateUI(RouteCollection routeData)
     {
         InitializeUIElements();
         /*

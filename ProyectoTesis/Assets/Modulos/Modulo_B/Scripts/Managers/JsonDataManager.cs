@@ -1,28 +1,23 @@
-using System;
-using System.Collections.Generic;
-using UnityEngine;
-using UnityEngine.SceneManagement;
 using Newtonsoft.Json;
-using System.IO;
+using System;
 using System.Collections;
-using UnityEngine.UIElements;
+using System.Collections.Generic;
+using System.IO;
+using UnityEngine;
 using UnityEngine.Networking;
+
 public class JsonDataManager : MonoBehaviour
 {
     private string routePath;
     private string lastJsonRoute;
-    public static event Action<Route> OnJsonRouteUpdated;
-    private string objectDetectionPath;
-    private string lastJsonObjectDetection;
-    public static event Action<ObjectDetection>OnChangeObjectionDetection;
+    public static event Action<RouteCollection> OnJsonRouteUpdated;
+    public static event Action<List<AlertPoint>> OnAlertPointsUpdated; // Nuevo evento para puntos de alerta
+
     void Start()
     {
         StartCoroutine(CheckJsonRouteChanges());
-        StartCoroutine(CheckJsonObjectDetection());
     }
-    void Update()
-    {
-    }
+
     IEnumerator CheckJsonRouteChanges()
     {
         while (true)
@@ -31,19 +26,21 @@ public class JsonDataManager : MonoBehaviour
             yield return new WaitForSecondsRealtime(3f);
         }
     }
+
     IEnumerator LoadRouteData()
     {
-        routePath = Path.Combine(Application.streamingAssetsPath,"route.json");
+        routePath = Path.Combine(Application.streamingAssetsPath, "route.json");
         string fileRoutePath = routePath;
+
         if (!fileRoutePath.Contains("://"))
         {
-            Debug.Log("Error, no existe el archivo route.json");
             fileRoutePath = "file://" + fileRoutePath;
         }
-        using (UnityWebRequest request =
-       UnityWebRequest.Get(fileRoutePath))
+
+        using (UnityWebRequest request = UnityWebRequest.Get(fileRoutePath))
         {
             yield return request.SendWebRequest();
+
             if (request.result == UnityWebRequest.Result.Success)
             {
                 string newJsonData = request.downloadHandler.text;
@@ -55,53 +52,57 @@ public class JsonDataManager : MonoBehaviour
             }
             else
             {
-                Debug.Log("Error");
+                Debug.LogError("Error loading route.json: " + request.error);
             }
         }
     }
+
     void DeserializeJsonRoute(string routeJsonSerialized)
     {
-        Route routeJson = JsonConvert.DeserializeObject<Route>(routeJsonSerialized);
-        OnJsonRouteUpdated?.Invoke(routeJson);
-    }
-    IEnumerator CheckJsonObjectDetection()
-    {
-        while (true)
+        try
         {
-            yield return StartCoroutine(LoadObjectDetection());
-            yield return new WaitForSecondsRealtime(1f);
+            RouteCollection routeJson = JsonConvert.DeserializeObject<RouteCollection>(routeJsonSerialized);
+            OnJsonRouteUpdated?.Invoke(routeJson);
+
+            // Extraer puntos de alerta
+            List<AlertPoint> alertPoints = ExtractAlertPoints(routeJson);
+            OnAlertPointsUpdated?.Invoke(alertPoints);
+        }
+        catch (Exception e)
+        {
+            Debug.LogError("Error deserializing route JSON: " + e.Message);
         }
     }
-    IEnumerator LoadObjectDetection()
+
+    private List<AlertPoint> ExtractAlertPoints(RouteCollection route)
     {
-        objectDetectionPath = Path.Combine(Application.streamingAssetsPath, "objects.json");
-        string filePath = objectDetectionPath;
-        // En Android, necesitamos el prefijo jar:file://
-        if (!filePath.Contains("://"))
+        List<AlertPoint> alertPoints = new List<AlertPoint>();
+
+        foreach (var feature in route.features)
         {
-            filePath = "file://" + filePath;
-        }
-        using (UnityWebRequest request = UnityWebRequest.Get(filePath))
-        {
-            yield return request.SendWebRequest();
-            if (request.result == UnityWebRequest.Result.Success)
+            // Solo procesar Features de tipo "Point"
+            if (feature.geometry.type == "Point")
             {
-                string newJsonData = request.downloadHandler.text;
-                if (newJsonData != null && newJsonData != lastJsonObjectDetection)
+                var coords = feature.geometry.GetPointCoordinates();
+                if (coords != null && coords.Count >= 2)
                 {
-                    lastJsonObjectDetection = newJsonData;
-                    DeserializeJsonObjectDetection(newJsonData);
+                    // En GeoJSON las coordenadas están como [longitude, latitude]
+                    double longitude = coords[0];
+                    double latitude = coords[1];
+
+                    AlertPoint alertPoint = new AlertPoint(latitude, longitude, feature.properties);
+                    alertPoints.Add(alertPoint);
+
+                    Debug.Log($"Alert point found: Lat={latitude}, Lon={longitude}, Type={feature.properties.type}");
+                }
+                else
+                {
+                    Debug.LogWarning("Invalid point coordinates in feature");
                 }
             }
-            else
-            {
-                Debug.Log("Error al cargar objects.json: " + request.error);
-            }
         }
+
+        return alertPoints;
     }
-    void DeserializeJsonObjectDetection(string objectDetectionSerialized)
-    {
-        ObjectDetection objectDetection = JsonConvert.DeserializeObject<ObjectDetection>(objectDetectionSerialized);
-        OnChangeObjectionDetection?.Invoke(objectDetection);
-    }
+
 }
