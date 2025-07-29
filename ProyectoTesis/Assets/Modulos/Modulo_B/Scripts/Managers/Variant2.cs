@@ -35,11 +35,15 @@ public class Variant2 : MonoBehaviour
     public float gpsUpdateInterval = 1f; // Intervalo de actualización GPS en segundos
     public bool continuousGPSUpdate = true; // Actualización continua del GPS
 
+    [Header("Configuración de Ruta")]
+    public string targetLocationName = "Facultad de Ingeniería de Sistemas"; // Nombre de la ubicación objetivo
+
     private float lastGPSUpdate = 0f;
     private Vector2 lastGPSPosition = Vector2.zero;
     private bool isGPSReady = false;
-
     private bool showMapMarkers = true;
+    private bool shouldDrawRoute = false; // Control para dibujar la ruta
+    private RouteCollection currentRouteData; // Datos de la ruta actual
 
     void Start()
     {
@@ -58,16 +62,17 @@ public class Variant2 : MonoBehaviour
             SimpleGPSManager.OnGPSReady += OnGPSReady;
         }
 
+        // Suscribirse a los eventos de datos JSON y selección de ubicación
+        JsonDataManager.OnJsonRouteUpdated += OnRouteDataUpdated;
+        ItemLocation.OnSelectLocation += OnLocationSelected;
+        SettingsUI.onMapMarkersActive += OnMapMarkersActiveChanged;
+
         if (mapLoader.isMapLoaded)
         {
             OnMapLoaded();
         }
 
         disableEndMarker();
-
-        // Solo suscribirse al evento para el marcador de fin
-        ItemLocation.OnSelectLocation += PositionEndMarker;
-        SettingsUI.onMapMarkersActive += OnMapMarkersActiveChanged;
     }
 
     void Update()
@@ -87,10 +92,102 @@ public class Variant2 : MonoBehaviour
             SimpleGPSManager.OnGPSReady -= OnGPSReady;
         }
 
-        ItemLocation.OnSelectLocation -= PositionEndMarker;
+        JsonDataManager.OnJsonRouteUpdated -= OnRouteDataUpdated;
+        ItemLocation.OnSelectLocation -= OnLocationSelected;
         SettingsUI.onMapMarkersActive -= OnMapMarkersActiveChanged;
     }
-    // 4. NUEVOS MÉTODOS (agregar después de OnDestroy)
+
+    // NUEVO: Manejar actualización de datos de ruta
+    void OnRouteDataUpdated(RouteCollection routeData)
+    {
+        currentRouteData = routeData;
+        Debug.Log("📊 Datos de ruta actualizados");
+
+        // Solo procesar la ruta si debe dibujarse
+        if (shouldDrawRoute)
+        {
+            ProcessRouteData();
+        }
+    }
+
+    // NUEVO: Manejar selección de ubicación
+    void OnLocationSelected(Location selectedLocation)
+    {
+        Debug.Log($"🎯 Ubicación seleccionada: {selectedLocation.nombre}");
+
+        // Verificar si es la ubicación objetivo
+        shouldDrawRoute = selectedLocation.nombre.Equals(targetLocationName, System.StringComparison.OrdinalIgnoreCase);
+
+        if (shouldDrawRoute)
+        {
+            Debug.Log($"✅ Ubicación objetivo detectada: {targetLocationName}");
+            // Si ya tenemos datos de ruta, procesarlos
+            if (currentRouteData != null)
+            {
+                ProcessRouteData();
+            }
+        }
+        else
+        {
+            Debug.Log($"❌ Ubicación no es objetivo. Ocultando ruta.");
+            ClearRoute();
+        }
+
+        // Mantener la lógica original para posicionar el marcador de fin
+        PositionEndMarker(selectedLocation);
+    }
+
+    // NUEVO: Procesar datos de ruta del JSON
+    void ProcessRouteData()
+    {
+        if (currentRouteData == null || currentRouteData.features == null)
+        {
+            Debug.LogWarning("⚠️ No hay datos de ruta disponibles");
+            return;
+        }
+
+        List<Vector2> routePoints = new List<Vector2>();
+
+        foreach (var feature in currentRouteData.features)
+        {
+            if (feature.geometry.type == "LineString")
+            {
+                var coordinates = feature.geometry.GetLineStringCoordinates();
+                if (coordinates != null)
+                {
+                    foreach (var coord in coordinates)
+                    {
+                        if (coord.Count >= 2)
+                        {
+                            // En GeoJSON: [longitude, latitude]
+                            double longitude = coord[0];
+                            double latitude = coord[1];
+                            routePoints.Add(new Vector2((float)latitude, (float)longitude));
+                        }
+                    }
+                    Debug.Log($"📍 Procesados {coordinates.Count} puntos de ruta");
+                }
+            }
+        }
+
+        if (routePoints.Count > 0)
+        {
+            SetPathPoints(routePoints);
+            Debug.Log($"🛣️ Ruta dibujada con {routePoints.Count} puntos");
+        }
+        else
+        {
+            Debug.LogWarning("⚠️ No se encontraron puntos de ruta válidos");
+        }
+    }
+
+    // NUEVO: Limpiar ruta solamente
+    void ClearRoute()
+    {
+        ClearPath();
+        // NO tocar los marcadores, solo limpiar la ruta
+    }
+
     void OnMapMarkersActiveChanged(bool isActive)
     {
         showMapMarkers = isActive;
@@ -170,8 +267,11 @@ public class Variant2 : MonoBehaviour
             PositionStartMarker();
         }
 
-        // NO posicionar el marcador de fin aquí - solo se posiciona cuando llega el evento
-        DrawUIPath();
+        // Solo dibujar si debe mostrar la ruta
+        if (shouldDrawRoute)
+        {
+            DrawUIPath();
+        }
     }
 
     // Posicionar marcador de inicio
@@ -181,7 +281,6 @@ public class Variant2 : MonoBehaviour
 
         Vector2 startPos = mapLoader.LatLngToMapPosition(startLat, startLng);
         startMarker.anchoredPosition = startPos;
-        // Aplicar visibilidad basada en la configuración
         startMarker.gameObject.SetActive(showMapMarkers);
         Debug.Log($"🎯 Marcador de inicio posicionado en: {startLat:F6}, {startLng:F6}");
     }
@@ -200,8 +299,11 @@ public class Variant2 : MonoBehaviour
         endMarker.gameObject.SetActive(showMapMarkers);
         Debug.Log($"🏁 Marcador de fin posicionado en: {endLat:F6}, {endLng:F6}");
 
-        // Redibujar el path cuando se posiciona el marcador de fin
-        DrawUIPath();
+        // Redibujar el path cuando se posiciona el marcador de fin SOLO si debe dibujar ruta
+        if (shouldDrawRoute)
+        {
+            DrawUIPath();
+        }
     }
 
     // Usar GPS para punto de inicio
@@ -227,7 +329,7 @@ public class Variant2 : MonoBehaviour
 
     void DrawUIPath()
     {
-        if (!mapLoader.isMapLoaded || pathPoints.Count < 2) return;
+        if (!mapLoader.isMapLoaded || pathPoints.Count < 2 || !shouldDrawRoute) return;
 
         Vector2[] uiPoints = new Vector2[pathPoints.Count];
         for (int i = 0; i < pathPoints.Count; i++)
@@ -250,19 +352,35 @@ public class Variant2 : MonoBehaviour
     public void SetPathPoints(List<Vector2> newPathPoints)
     {
         pathPoints = new List<Vector2>(newPathPoints);
-        DrawUIPath();
+        if (shouldDrawRoute)
+        {
+            DrawUIPath();
+        }
     }
 
     public void AddPathPoint(double lat, double lng)
     {
         pathPoints.Add(new Vector2((float)lat, (float)lng));
-        DrawUIPath();
+        if (shouldDrawRoute)
+        {
+            DrawUIPath();
+        }
     }
 
     public void ClearPath()
     {
         pathPoints.Clear();
-        uiPathRenderer.Points = new Vector2[0];
+        if (uiPathRenderer != null)
+        {
+            uiPathRenderer.Points = new Vector2[0];
+        }
+    }
+
+    // NUEVO: Cambiar ubicación objetivo
+    public void SetTargetLocationName(string locationName)
+    {
+        targetLocationName = locationName;
+        Debug.Log($"🎯 Ubicación objetivo cambiada a: {locationName}");
     }
 
     // Método para usar coordenadas actuales del GPS como inicio
@@ -312,13 +430,25 @@ public class Variant2 : MonoBehaviour
         return lastGPSPosition;
     }
 
+    // NUEVO: Verificar si debe dibujar ruta
+    public bool ShouldDrawRoute()
+    {
+        return shouldDrawRoute;
+    }
+
     private void disableEndMarker()
     {
-        endMarker.gameObject.SetActive(false);
+        if (endMarker != null)
+        {
+            endMarker.gameObject.SetActive(false);
+        }
     }
 
     private void enableEndMarker()
     {
-        endMarker.gameObject.SetActive(true);
+        if (endMarker != null)
+        {
+            endMarker.gameObject.SetActive(showMapMarkers);
+        }
     }
 }

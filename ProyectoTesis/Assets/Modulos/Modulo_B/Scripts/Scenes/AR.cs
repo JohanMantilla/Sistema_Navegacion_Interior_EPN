@@ -1,10 +1,12 @@
 using UnityEngine;
 using UnityEngine.UI;
+using TMPro;
 
 public class AR : MonoBehaviour
 {
     private Button btnRoute;
     [SerializeField] private Button btnNavigation;
+    [SerializeField] private TextMeshProUGUI probando;
 
     void Awake()
     {
