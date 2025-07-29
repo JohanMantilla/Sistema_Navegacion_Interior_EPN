@@ -1,55 +1,44 @@
 {
- "route": {
- "start": {
- "latitude": -0.123456,
- "longitude": -78.987654,
- "altitude": 2800
- },
- "end": {
- "latitude": -0.123400,
- "longitude": -78.987600,
- "altitude": 2797
- },
- "waypoints": [
- {
- "type": "walk",
- "distance_meters": 10,
- "steps": 40,
- "elevation_change": 0
- },
- {
- "type": "stairs_down",
- "num_steps": 15,
- "step_height_meters": 0.10,
- "step_width_meters": 0.50,
- "step_length_meters": 2.00,
- "elevation_change": -1.5,
- "distance_meters": 3
- },
- {
- "type": "turn",
- "direction": "right",
- "distance_meters": 0,
- "steps": 0,
- "elevation_change": 0
- },
- {
- "type": "stairs_down",
- "num_steps": 15,
- "step_height_meters": 0.10,
- "step_width_meters": 0.50,
- "step_length_meters": 2.00,
- "elevation_change": -1.5,
- "distance_meters": 3
- },
- {
- "type": "walk",
- "distance_meters": 10,
- "steps": 40,
- "elevation_change": 0
- }
- ],
- "total_distance_meters": 26,
- "total_steps": 60
- }
+  "type": "FeatureCollection",
+  "route_info": {
+    "start_point": {
+      "latitude": -0.2124127,
+      "longitude": -78.48996
+    },
+    "end_point": {
+      "latitude": -0.2123912,
+      "longitude": -78.49004
+    },
+    "total_distance_meters": 14
+  },
+  "features": [
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "LineString",
+        "coordinates": [
+          [ -78.48996, -0.2124127 ],
+          [ -78.48996, -0.2124127 ],
+          [ -78.49004, -0.2123912 ]
+        ]
+      },
+      "properties": {
+        "name": "Navigation Route"
+      }
+    },
+    {
+      "type": "Feature",
+      "geometry": {
+        "type": "Point",
+        "coordinates": [ -78.48996, -0.2124127 ]
+      },
+      "properties": {
+        "waypoint_index": 0,
+        "type": "surface",
+        "name_of_surface": "generic_surface",
+        "elevation_from_position_standard": 2.55,
+        "stair_count": 16
+      }
+    }
+  ]
 }
