@@ -9,6 +9,7 @@ public class Variant2 : MonoBehaviour
     public MapLoader mapLoader;
     public UILineRenderer uiPathRenderer;
     public SimpleGPSManager gpsManager; // Referencia al GPS Manager
+    public SimpleNavigationAudio audioManager; // NUEVO: Audio básico
 
     [Header("Marcadores")]
     public RectTransform startMarker;
@@ -37,6 +38,9 @@ public class Variant2 : MonoBehaviour
 
     [Header("Configuración de Ruta")]
     public string targetLocationName = "Teatro Politécnico"; // Nombre de la ubicación objetivo
+
+    [Header("Audio Básico")] // NUEVO
+    public bool enableAudio = true; // Habilitar audio simple
 
     private float lastGPSUpdate = 0f;
     private Vector2 lastGPSPosition = Vector2.zero;
@@ -67,6 +71,12 @@ public class Variant2 : MonoBehaviour
         ItemLocation.OnSelectLocation += OnLocationSelected;
         SettingsUI.onMapMarkersActive += OnMapMarkersActiveChanged;
 
+        // NUEVO: Buscar audio manager si no está asignado
+        if (audioManager == null)
+        {
+            audioManager = FindObjectOfType<SimpleNavigationAudio>();
+        }
+
         if (mapLoader.isMapLoaded)
         {
             OnMapLoaded();
@@ -95,6 +105,12 @@ public class Variant2 : MonoBehaviour
         JsonDataManager.OnJsonRouteUpdated -= OnRouteDataUpdated;
         ItemLocation.OnSelectLocation -= OnLocationSelected;
         SettingsUI.onMapMarkersActive -= OnMapMarkersActiveChanged;
+
+        // NUEVO: Detener audio al destruir
+        if (enableAudio && audioManager != null)
+        {
+            audioManager.StopNavigation();
+        }
     }
 
     // NUEVO: Manejar actualización de datos de ruta
@@ -126,11 +142,23 @@ public class Variant2 : MonoBehaviour
             {
                 ProcessRouteData();
             }
+
+            // NUEVO: Iniciar audio si está habilitado
+            if (enableAudio && audioManager != null)
+            {
+                audioManager.StartNavigation();
+            }
         }
         else
         {
             Debug.Log($"❌ Ubicación no es objetivo. Ocultando ruta.");
             ClearRoute();
+
+            // NUEVO: Detener audio
+            if (audioManager != null)
+            {
+                audioManager.StopNavigation();
+            }
         }
 
         // Mantener la lógica original para posicionar el marcador de fin
@@ -341,7 +369,7 @@ public class Variant2 : MonoBehaviour
         uiPathRenderer.SetAllDirty();
     }
 
-    // MÉTODOS PÚBLICOS
+    // MÉTODOS PÚBLICOS (mantienen toda la funcionalidad original)
     public void SetStartPoint(double lat, double lng)
     {
         startLat = lat;
@@ -376,20 +404,17 @@ public class Variant2 : MonoBehaviour
         }
     }
 
-    // NUEVO: Cambiar ubicación objetivo
     public void SetTargetLocationName(string locationName)
     {
         targetLocationName = locationName;
         Debug.Log($"🎯 Ubicación objetivo cambiada a: {locationName}");
     }
 
-    // Método para usar coordenadas actuales del GPS como inicio
     public void UseCurrentLocationAsStart()
     {
         SetStartPointFromGPS();
     }
 
-    // Método para obtener las coordenadas GPS actuales
     public Vector2 GetCurrentGPSCoordinates()
     {
         if (Input.location.status == LocationServiceStatus.Running)
@@ -409,7 +434,6 @@ public class Variant2 : MonoBehaviour
         }
     }
 
-    // Nuevos métodos para control de actualización GPS
     public void SetGPSUpdateInterval(float interval)
     {
         gpsUpdateInterval = interval;
@@ -430,7 +454,6 @@ public class Variant2 : MonoBehaviour
         return lastGPSPosition;
     }
 
-    // NUEVO: Verificar si debe dibujar ruta
     public bool ShouldDrawRoute()
     {
         return shouldDrawRoute;
@@ -450,5 +473,20 @@ public class Variant2 : MonoBehaviour
         {
             endMarker.gameObject.SetActive(showMapMarkers);
         }
+    }
+
+    // NUEVOS MÉTODOS SIMPLES PARA AUDIO
+    public void ToggleAudio(bool enabled)
+    {
+        enableAudio = enabled;
+        if (!enabled && audioManager != null)
+        {
+            audioManager.StopNavigation();
+        }
+    }
+
+    public bool IsAudioActive()
+    {
+        return audioManager != null && audioManager.IsNavigationActive();
     }
 }
