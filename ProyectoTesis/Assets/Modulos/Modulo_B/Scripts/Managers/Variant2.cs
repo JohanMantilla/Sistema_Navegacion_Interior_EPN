@@ -36,7 +36,7 @@ public class Variant2 : MonoBehaviour
     public bool continuousGPSUpdate = true; // Actualización continua del GPS
 
     [Header("Configuración de Ruta")]
-    public string targetLocationName = "Facultad de Ingeniería de Sistemas"; // Nombre de la ubicación objetivo
+    public string targetLocationName = "Teatro Politécnico"; // Nombre de la ubicación objetivo
 
     private float lastGPSUpdate = 0f;
     private Vector2 lastGPSPosition = Vector2.zero;
