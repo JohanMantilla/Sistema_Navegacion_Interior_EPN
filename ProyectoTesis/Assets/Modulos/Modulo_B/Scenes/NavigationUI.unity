@@ -2270,18 +2270,17 @@ MonoBehaviour:
   audioManager: {fileID: 450793894}
   startMarker: {fileID: 1520889876}
   endMarker: {fileID: 324959277}
-  pathColor: {r: 0, g: 0.003921569, b: 0.023529412, a: 1}
-  pathWidth: 5
   startLat: 0
   startLng: 0
   endLat: 0
   endLng: 0
-  pathPoints: []
   useGPSForStartPoint: 1
   autoSetStartFromGPS: 1
+  targetLocationName: "Teatro Polit\xE9cnico"
+  pathColor: {r: 0, g: 0.003921569, b: 0.023529412, a: 1}
+  pathPoints: []
   gpsUpdateInterval: 1
   continuousGPSUpdate: 1
-  targetLocationName: "Teatro Polit\xE9cnico"
   enableAudio: 1
 --- !u!114 &813901462
 MonoBehaviour:
@@ -3028,7 +3027,7 @@ GameObject:
   m_Icon: {fileID: 0}
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
-  m_IsActive: 0
+  m_IsActive: 1
 --- !u!114 &941609007
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -3170,7 +3169,7 @@ MonoBehaviour:
   m_TargetGraphic: {fileID: 1677368855}
   m_HandleRect: {fileID: 1677368854}
   m_Direction: 2
-  m_Value: 0.31073985
+  m_Value: 0.00000003937752
   m_Size: 0.07462687
   m_NumberOfSteps: 0
   m_OnValueChanged:
@@ -3369,7 +3368,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   updateInterval: 1
-  dialog: {fileID: 0}
+  dialog: {fileID: 941609006}
   acceptDialog: {fileID: 923721356}
 --- !u!1 &1124614836
 GameObject:
@@ -3910,7 +3909,7 @@ RectTransform:
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
   m_AnchorMin: {x: 0, y: 1}
   m_AnchorMax: {x: 1, y: 1}
-  m_AnchoredPosition: {x: -0.000011444092, y: 2136.7065}
+  m_AnchoredPosition: {x: -0.000011444092, y: 3100}
   m_SizeDelta: {x: 15.1506, y: 3350}
   m_Pivot: {x: 0, y: 1}
 --- !u!114 &1147936237
@@ -6395,8 +6394,8 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   apiKey: AIzaSyDfGA3dKIHKSW7RvU5HPbZ6fUkRiyBVdik
   mapImage: {fileID: 522728881}
-  centerLatitude: -0.21007054148416407
-  centerLongitude: -78.48929972012172
+  centerLatitude: -0.22801878963990962
+  centerLongitude: -78.48375901895291
   zoom: 17
   mapWidth: 680
   mapHeight: 680
