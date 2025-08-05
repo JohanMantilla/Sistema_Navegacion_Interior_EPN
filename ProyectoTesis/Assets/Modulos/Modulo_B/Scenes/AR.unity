@@ -455,7 +455,6 @@ GameObject:
   serializedVersion: 6
   m_Component:
   - component: {fileID: 592218628}
-  - component: {fileID: 592218627}
   - component: {fileID: 592218629}
   m_Layer: 0
   m_Name: XR Interaction Manager
@@ -464,18 +463,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &592218627
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 592218626}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 83e4e6cca11330d4088d729ab4fc9d9f, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!4 &592218628
 Transform:
   m_ObjectHideFlags: 0
@@ -525,10 +512,6 @@ GameObject:
   m_Component:
   - component: {fileID: 852661881}
   - component: {fileID: 852661880}
-  - component: {fileID: 852661879}
-  - component: {fileID: 852661878}
-  - component: {fileID: 852661877}
-  - component: {fileID: 852661882}
   - component: {fileID: 852661883}
   - component: {fileID: 852661884}
   m_Layer: 0
@@ -538,51 +521,6 @@ GameObject:
   m_NavMeshLayer: 0
   m_StaticEditorFlags: 0
   m_IsActive: 1
---- !u!114 &852661877
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 852661876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: fa17d122634046b4a8e23048891fafc5, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <trackablesChanged>k__BackingField:
-    m_PersistentCalls:
-      m_Calls: []
-  m_RaycastPrefab: {fileID: 0}
---- !u!114 &852661878
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 852661876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: e1760703bbd54c04488a8d10600262ab, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <trackablesChanged>k__BackingField:
-    m_PersistentCalls:
-      m_Calls: []
-  m_PlanePrefab: {fileID: 0}
-  m_DetectionMode: -1
---- !u!114 &852661879
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 852661876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 017c5e3933235514c9520e1dace2a4b2, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
 --- !u!114 &852661880
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -616,22 +554,6 @@ Transform:
   - {fileID: 452570468}
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
---- !u!114 &852661882
-MonoBehaviour:
-  m_ObjectHideFlags: 0
-  m_CorrespondingSourceObject: {fileID: 0}
-  m_PrefabInstance: {fileID: 0}
-  m_PrefabAsset: {fileID: 0}
-  m_GameObject: {fileID: 852661876}
-  m_Enabled: 1
-  m_EditorHideFlags: 0
-  m_Script: {fileID: 11500000, guid: 728ad7fae8e460a4ba41265c7308d757, type: 3}
-  m_Name: 
-  m_EditorClassIdentifier: 
-  <trackablesChanged>k__BackingField:
-    m_PersistentCalls:
-      m_Calls: []
-  m_AnchorPrefab: {fileID: 0}
 --- !u!114 &852661883
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1286,6 +1208,7 @@ MonoBehaviour:
   m_Name: 
   m_EditorClassIdentifier: 
   btnNavigation: {fileID: 1686746813}
+  probando: {fileID: 0}
 --- !u!114 &1882219375
 MonoBehaviour:
   m_ObjectHideFlags: 0
@@ -1331,6 +1254,10 @@ MonoBehaviour:
   tglDrawBbox: {fileID: 0}
   tglVisualTypeSignal: {fileID: 0}
   tglAuditiveTypeSignal: {fileID: 0}
+  btnARInformation: {fileID: 0}
+  spriteBarOn: {fileID: 0}
+  spriteBarOff: {fileID: 0}
+  btnARInformationImage: {fileID: 0}
 --- !u!114 &1882219378
 MonoBehaviour:
   m_ObjectHideFlags: 0
