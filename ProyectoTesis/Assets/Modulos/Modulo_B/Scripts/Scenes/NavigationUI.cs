@@ -149,7 +149,7 @@ public class NavigationUI : MonoBehaviour
             // Método 2: Buscar en todos los Canvas activos
             if (scrollViewEPNLocations == null)
             {
-                Canvas[] canvases = FindObjectsOfType<Canvas>();
+                Canvas[] canvases = FindObjectsByType<Canvas>(FindObjectsSortMode.None);
                 foreach (Canvas canvas in canvases)
                 {
                     scrollViewEPNLocations = FindChildByName(canvas.transform, "EPNLocations");
@@ -161,7 +161,7 @@ public class NavigationUI : MonoBehaviour
             if (scrollViewEPNLocations == null)
             {
                 // Ejemplo: si EPNLocations tiene un ScrollRect
-                ScrollRect scrollRect = FindObjectOfType<ScrollRect>();
+                ScrollRect scrollRect = FindFirstObjectByType<ScrollRect>();
                 if (scrollRect != null && scrollRect.name == "EPNLocations")
                 {
                     scrollViewEPNLocations = scrollRect.gameObject;

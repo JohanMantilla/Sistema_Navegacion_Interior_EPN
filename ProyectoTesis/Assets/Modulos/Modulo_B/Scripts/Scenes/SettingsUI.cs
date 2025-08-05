@@ -48,10 +48,6 @@ public class SettingsUI : MonoBehaviour
     private bool isInitialized = false;
     private AndroidJavaObject audioManager;
 
-    private bool isFirstClickCamaraPermission = false;
-    private bool isFirstClickLocationPermission = false;
-    private static bool hasPlayedWelcomeMessage = false;
-
     void Awake()
     {
         if (!isInitialized)

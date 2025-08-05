@@ -8,7 +8,6 @@ public class AudioFeedback : MonoBehaviour
 {
     [Header("Audio Settings")]
     [SerializeField] private float audioDelayBetweenAnnouncements = 2f;
-    [SerializeField] private float dangerCheckDelay = 0.5f;
     [SerializeField] private float dangerDistanceThreshold = 3f;
     [SerializeField] private float collisionDistanceThreshold = 2f;
 

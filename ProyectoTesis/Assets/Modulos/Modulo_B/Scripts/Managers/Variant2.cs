@@ -50,7 +50,7 @@ public class Variant2 : MonoBehaviour
             SimpleGPSManager.OnGPSReady += OnGPSReady;
 
         if (audioManager == null)
-            audioManager = FindObjectOfType<SimpleNavigationAudio>();
+            audioManager = FindFirstObjectByType<SimpleNavigationAudio>();
 
         if (mapLoader.isMapLoaded)
             OnMapLoaded();

@@ -298,7 +298,8 @@ public class DrawBbox : MonoBehaviour
         textInfo.fontSizeMax = 14;
         textInfo.enableAutoSizing = true;
         textInfo.overflowMode = TextOverflowModes.Overflow;
-        textInfo.enableWordWrapping = false;
+        //textInfo.enableWordWrapping = false;
+        textInfo.textWrappingMode = TextWrappingModes.NoWrap;
         textInfo.alignment = TextAlignmentOptions.Center;
         textInfo.fontStyle = FontStyles.Bold;
         textInfo.outlineWidth = 0.1f;
