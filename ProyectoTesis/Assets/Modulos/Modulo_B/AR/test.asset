@@ -77,3 +77,43 @@ MonoBehaviour:
     m_SpecifySize: 1
     m_Name: BFBasica
     m_Texture: {fileID: 2800000, guid: e277d1b79d1e68948a0e786c55d97484, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5111995952212958101
+      m_GuidHigh: 11918402852700485507
+    m_SerializedTextureGuid:
+      m_GuidLow: 15056782921595643817
+      m_GuidHigh: 5522408740370780378
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BMecanica
+    m_Texture: {fileID: 2800000, guid: fde067a9704ad0f4da10508a7d89a34c, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5405728376030644276
+      m_GuidHigh: 15297112619532183977
+    m_SerializedTextureGuid:
+      m_GuidLow: 12318564558927842076
+      m_GuidHigh: 11913117520322732394
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BPetroleos
+    m_Texture: {fileID: 2800000, guid: 259c4b1c5533aaf46aa1512e44e553a5, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 5427152033259849454
+      m_GuidHigh: 8612101735217012137
+    m_SerializedTextureGuid:
+      m_GuidLow: 5896503514482258558
+      m_GuidHigh: 3884296760080413176
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BCienciasAdministrativas
+    m_Texture: {fileID: 2800000, guid: 958eb27e96b451d4f831cbca52cbe735, type: 3}
+  - m_SerializedGuid:
+      m_GuidLow: 4779424027706226298
+      m_GuidHigh: 2039848196231409800
+    m_SerializedTextureGuid:
+      m_GuidLow: 4374400302443124920
+      m_GuidHigh: 8224885762017150730
+    m_Size: {x: 1.575, y: 2.1000001}
+    m_SpecifySize: 1
+    m_Name: BCivil
+    m_Texture: {fileID: 2800000, guid: 047bd8b8fde63cb40a4733f305aa2472, type: 3}
