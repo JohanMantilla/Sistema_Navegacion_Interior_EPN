@@ -2,9 +2,9 @@ using UnityEngine;
 public class Location
 {
     public string nombre;
-    public double longitude;
-    public double latitude;
-    public Location(string nombre, double longitude, double latitude)
+    public float longitude;
+    public float latitude;
+    public Location(string nombre, float longitude, float latitude)
     {
         this.nombre = nombre;
         this.longitude = longitude;

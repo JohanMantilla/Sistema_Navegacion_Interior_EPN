@@ -725,6 +725,7 @@ GameObject:
   - component: {fileID: 518212069}
   - component: {fileID: 518212067}
   - component: {fileID: 518212070}
+  - component: {fileID: 518212071}
   m_Layer: 0
   m_Name: SceneManager
   m_TagString: Untagged
@@ -791,6 +792,20 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   scrollViewEPNLocations: {fileID: 0}
   pnlConfirmationDialog: {fileID: 0}
+  parentContainer: {fileID: 0}
+--- !u!114 &518212071
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 518212064}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: c864ec1c468ec1d429e6e2d86b54f90f, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  btnNavigation: {fileID: 0}
 --- !u!1 &766125748
 GameObject:
   m_ObjectHideFlags: 0
@@ -942,8 +957,6 @@ MonoBehaviour:
   m_EditorClassIdentifier: 
   btnCameraPermission: {fileID: 0}
   btnLocationPermission: {fileID: 0}
-  tglVisualTypeSignal: {fileID: 0}
-  tglAuditiveTypeSignal: {fileID: 0}
   btnNextSettingsUI: {fileID: 0}
   imgVolume: {fileID: 0}
   sprWithOutVolume: {fileID: 0}
@@ -955,6 +968,11 @@ MonoBehaviour:
   slider: {fileID: 0}
   message: "Pantalla de configuraci\xF3n"
   controlSystemVolume: 1
+  tglShowObjectInformation: {fileID: 0}
+  tglShowMapMarkers: {fileID: 0}
+  tglDrawBbox: {fileID: 0}
+  tglVisualTypeSignal: {fileID: 0}
+  tglAuditiveTypeSignal: {fileID: 0}
 --- !u!4 &1009960610
 Transform:
   m_ObjectHideFlags: 0

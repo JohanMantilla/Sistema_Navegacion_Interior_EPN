@@ -1,40 +1,86 @@
+Ôªøusing System.Collections.Generic;
+using TMPro;
 using UnityEngine;
 using UnityEngine.XR.ARFoundation;
-using System.Collections.Generic;
-using TMPro;
 
 public class DrawBbox : MonoBehaviour
 {
     [Header("Referencias")]
     public ARCameraManager arCamera;
-    public GameObject bboxPrefab; // GameObject con LineRenderer + TextMeshPro hijo
+    public GameObject bboxPrefab;
 
-    [Header("ConfiguraciÛn de LÌneas")]
-    [SerializeField] private float baseLineWidth = 0.02f; // Ancho base m·s delgado
-    [SerializeField] private float minLineWidth = 0.008f; // Ancho mÌnimo para distancias cercanas
-    [SerializeField] private float maxLineWidth = 0.04f; // Ancho m·ximo para distancias lejanas
+    [Header("Configuraci√≥n de L√≠neas")]
+    [SerializeField] private float baseLineWidth = 0.02f;
+    [SerializeField] private float minLineWidth = 0.008f;
+    [SerializeField] private float maxLineWidth = 0.04f;
 
-    [Header("ConfiguraciÛn de Texto")]
-    [SerializeField] private float baseTextSize = 0.8f; // TamaÒo base del texto m·s grande
-    [SerializeField] private float minTextSize = 0.4f; // TamaÒo mÌnimo del texto
-    [SerializeField] private float maxTextSize = 1.5f; // TamaÒo m·ximo del texto
-    [SerializeField] private float textDistanceOffset = 0.1f; // Offset del texto respecto a la caja
+    [Header("Configuraci√≥n de Texto")]
+    [SerializeField] private float baseTextSize = 0.8f;
+    [SerializeField] private float minTextSize = 0.4f;
+    [SerializeField] private float maxTextSize = 1.5f;
+    [SerializeField] private float textDistanceOffset = 0.1f;
 
-    [Header("ConfiguraciÛn de Distancia")]
-    [SerializeField] private float minProjectionDistance = 0.5f; // Distancia mÌnima de proyecciÛn
-    [SerializeField] private float maxProjectionDistance = 20f; // Distancia m·xima de proyecciÛn
+    [Header("Configuraci√≥n de Distancia")]
+    [SerializeField] private float minProjectionDistance = 0.5f;
+    [SerializeField] private float maxProjectionDistance = 20f;
 
     private List<GameObject> activeBBoxes = new List<GameObject>();
+    private bool showDrawBbox = true;
+    private bool showObjectInformation = true;
 
     void Start()
     {
+        // CR√çTICO: Cargar las preferencias guardadas al iniciar
+        LoadDrawBboxPreference();
+        LoadObjectInformationPreference();
+
+        Debug.Log($"[DrawBbox NavigationUI] START - showDrawBbox: {showDrawBbox}, showObjectInformation: {showObjectInformation}");
+
         WebSocketClient.OnChangeObjectionDetection += OnObjectDetectionUpdated;
-        Debug.Log("ARBBoxDetector iniciado, esperando primer JSON...");
+        SettingsUI.onDrawBboxActive += OnShowDrawBboxActiveChanged;
+        SettingsUI.onObjectInformationActive += OnShowObjectInformationActiveChanged;
+
+        Debug.Log("[DrawBbox NavigationUI] Eventos suscritos correctamente");
+    }
+
+    void LoadDrawBboxPreference()
+    {
+        if (PlayerPrefs.HasKey("DrawBbox"))
+        {
+            bool savedValue = PlayerPrefs.GetInt("DrawBbox", 1) == 1;
+            showDrawBbox = savedValue;
+            Debug.Log($"[DrawBbox NavigationUI] Preferencia DrawBbox cargada: {savedValue}");
+        }
+        else
+        {
+            // Valor por defecto si no hay preferencia
+            showDrawBbox = true;
+            Debug.Log("[DrawBbox NavigationUI] Sin preferencia DrawBbox guardada, usando valor por defecto: true");
+        }
+    }
+
+    void LoadObjectInformationPreference()
+    {
+        if (PlayerPrefs.HasKey("ShowObjectInformationChanged"))
+        {
+            bool savedValue = PlayerPrefs.GetInt("ShowObjectInformationChanged", 1) == 1;
+            showObjectInformation = savedValue;
+            Debug.Log($"[DrawBbox NavigationUI] Preferencia ObjectInformation cargada: {savedValue}");
+        }
+        else
+        {
+            // Valor por defecto si no hay preferencia
+            showObjectInformation = true;
+            Debug.Log("[DrawBbox NavigationUI] Sin preferencia ObjectInformation guardada, usando valor por defecto: true");
+        }
     }
 
     void OnDestroy()
     {
         WebSocketClient.OnChangeObjectionDetection -= OnObjectDetectionUpdated;
+        SettingsUI.onDrawBboxActive -= OnShowDrawBboxActiveChanged;
+        SettingsUI.onObjectInformationActive -= OnShowObjectInformationActiveChanged;
+        Debug.Log("[DrawBbox NavigationUI] Eventos desuscritos");
     }
 
     private void OnObjectDetectionUpdated(ObjectDetection detectionData)
@@ -42,17 +88,72 @@ public class DrawBbox : MonoBehaviour
         if (detectionData != null)
         {
             ProcessDetectionData(detectionData);
-            Debug.Log($"Procesados {detectionData.objects?.Count ?? 0} objetos detectados");
         }
+    }
+
+    void OnShowDrawBboxActiveChanged(bool isActive)
+    {
+        Debug.Log($"[DrawBbox NavigationUI] ===== DRAWBBOX TOGGLE CHANGED =====");
+        Debug.Log($"[DrawBbox NavigationUI] Valor recibido: {isActive}");
+        Debug.Log($"[DrawBbox NavigationUI] Estado anterior: {showDrawBbox}");
+
+        showDrawBbox = isActive;
+
+        // Actualizar la visibilidad de las l√≠neas en las cajas existentes
+        UpdateLineVisibilityInActiveBBoxes();
+
+        // Si ambos est√°n desactivados, limpiar todas las cajas
+        if (!showDrawBbox && !showObjectInformation)
+        {
+            Debug.Log("[DrawBbox NavigationUI] Ambos desactivados - limpiando todas las cajas");
+            ClearAllBBoxes();
+        }
+
+        Debug.Log($"[DrawBbox NavigationUI] Estado despu√©s: {showDrawBbox}");
+        Debug.Log($"[DrawBbox NavigationUI] ===== FIN DRAWBBOX TOGGLE =====");
+    }
+
+    void OnShowObjectInformationActiveChanged(bool isActive)
+    {
+        Debug.Log($"[DrawBbox NavigationUI] ===== OBJECT INFO TOGGLE CHANGED =====");
+        Debug.Log($"[DrawBbox NavigationUI] Valor recibido: {isActive}");
+        Debug.Log($"[DrawBbox NavigationUI] Estado anterior: {showObjectInformation}");
+
+        showObjectInformation = isActive;
+
+        // Actualizar la visibilidad del texto en las cajas existentes
+        UpdateTextVisibilityInActiveBBoxes();
+
+        // Si ambos est√°n desactivados, limpiar todas las cajas
+        if (!showDrawBbox && !showObjectInformation)
+        {
+            Debug.Log("[DrawBbox NavigationUI] Ambos desactivados - limpiando todas las cajas");
+            ClearAllBBoxes();
+        }
+
+        Debug.Log($"[DrawBbox NavigationUI] Estado despu√©s: {showObjectInformation}");
+        Debug.Log($"[DrawBbox NavigationUI] ===== FIN OBJECT INFO TOGGLE =====");
     }
 
     void ProcessDetectionData(ObjectDetection data)
     {
+        // CAMBIO: Solo limpiar si AL MENOS UNO de los dos est√° activo
+        // Si ambos est√°n desactivados, no procesamos nada
+        if (!showDrawBbox && !showObjectInformation)
+        {
+            if (activeBBoxes.Count > 0)
+            {
+                Debug.Log($"[DrawBbox NavigationUI] Ambos desactivados, limpiando {activeBBoxes.Count} cajas");
+                ClearAllBBoxes();
+            }
+            return; // SALIR AQU√ç
+        }
+
+        // Limpiar cajas anteriores solo si vamos a dibujar algo nuevo
         ClearAllBBoxes();
 
         if (data?.objects == null || data.objects.Count == 0)
         {
-            Debug.LogWarning("No objects detected in data.");
             return;
         }
 
@@ -62,31 +163,30 @@ public class DrawBbox : MonoBehaviour
             {
                 DrawBoundingBox(obj);
             }
-
-            if (obj.distance <= 5 && obj.name == "person")
-            {
-                // LÛgica especÌfica para personas cercanas
-            }
         }
     }
 
     void DrawBoundingBox(Objects objData)
     {
+        // CAMBIO: Solo crear si AL MENOS UNO est√° activo
+        if (!showDrawBbox && !showObjectInformation)
+        {
+            Debug.LogWarning("[DrawBbox NavigationUI] DrawBoundingBox llamado pero ambos est√°n desactivados!");
+            return;
+        }
+
         if (bboxPrefab == null || arCamera == null) return;
 
         Camera cam = arCamera.GetComponent<Camera>();
         if (cam == null) return;
 
-        // Clampar la distancia para evitar deformaciones
         float clampedDistance = Mathf.Clamp(objData.distance, minProjectionDistance, maxProjectionDistance);
 
-        // YOLOv8 bbox format: [x_min, y_min, x_max, y_max]
         float xMin = objData.bbox[0];
         float yMin = objData.bbox[1];
         float xMax = objData.bbox[2];
         float yMax = objData.bbox[3];
 
-        // Convertir a coordenadas de viewport
         Vector2 minViewport = new Vector2(
             xMin / Screen.width,
             1f - (yMax / Screen.height)
@@ -97,25 +197,50 @@ public class DrawBbox : MonoBehaviour
             1f - (yMin / Screen.height)
         );
 
-        // Calcular las esquinas del bounding box
         Vector3[] corners = new Vector3[5];
         corners[0] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, minViewport.y, clampedDistance));
         corners[1] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, minViewport.y, clampedDistance));
         corners[2] = cam.ViewportToWorldPoint(new Vector3(maxViewport.x, maxViewport.y, clampedDistance));
         corners[3] = cam.ViewportToWorldPoint(new Vector3(minViewport.x, maxViewport.y, clampedDistance));
-        corners[4] = corners[0]; // Cerrar el rect·ngulo
+        corners[4] = corners[0];
 
-        // Instanciar el prefab
         Vector3 centerPosition = (corners[0] + corners[2]) * 0.5f;
         GameObject bbox = Instantiate(bboxPrefab, centerPosition, Quaternion.identity);
 
-        // Configurar el LineRenderer
-        ConfigureLineRenderer(bbox, corners, objData);
+        if (bbox != null)
+        {
+            // CAMBIO: Configurar l√≠neas solo si showDrawBbox est√° activo
+            if (showDrawBbox)
+            {
+                ConfigureLineRenderer(bbox, corners, objData);
+            }
+            else
+            {
+                // Si no queremos l√≠neas, desactivar el LineRenderer
+                LineRenderer line = bbox.GetComponent<LineRenderer>();
+                if (line != null)
+                {
+                    line.enabled = false;
+                }
+            }
 
-        // Configurar el texto
-        ConfigureText(bbox, corners, objData, cam);
+            // CAMBIO: Configurar texto solo si showObjectInformation est√° activo
+            if (showObjectInformation)
+            {
+                ConfigureText(bbox, corners, objData, cam);
+            }
+            else
+            {
+                // Si no queremos texto, desactivar el TextMeshPro
+                TextMeshPro textInfo = bbox.GetComponentInChildren<TextMeshPro>();
+                if (textInfo != null)
+                {
+                    textInfo.gameObject.SetActive(false);
+                }
+            }
 
-        activeBBoxes.Add(bbox);
+            activeBBoxes.Add(bbox);
+        }
     }
 
     void ConfigureLineRenderer(GameObject bbox, Vector3[] corners, Objects objData)
@@ -130,14 +255,11 @@ public class DrawBbox : MonoBehaviour
         line.startColor = classColor;
         line.endColor = classColor;
 
-        // Calcular ancho de lÌnea basado en distancia
         float lineWidth = CalculateLineWidth(objData.distance);
         line.startWidth = lineWidth;
         line.endWidth = lineWidth;
 
         line.useWorldSpace = true;
-
-        // Mejorar la calidad visual de las lÌneas
         line.numCornerVertices = 4;
         line.numCapVertices = 4;
     }
@@ -147,19 +269,19 @@ public class DrawBbox : MonoBehaviour
         TextMeshPro textInfo = bbox.GetComponentInChildren<TextMeshPro>();
         if (textInfo == null) return;
 
-        // Formato del texto con saltos de lÌnea
+        // Configurar el contenido del texto
         textInfo.text = $"{objData.name} ({objData.confidence:F2})\n" +
                        $"Speed: {objData.speed:F1}m/s\n" +
                        $"Distance: {objData.distance:F1}m";
 
         // Posicionar el texto arriba del bounding box con mejor offset
-        Vector3 topLeft = corners[3] + new Vector3(0.11f,-0.1f,0f);
+        Vector3 topLeft = corners[3] + new Vector3(0.11f, -0.1f, 0f);
         Vector3 cameraDirection = (cam.transform.position - topLeft).normalized;
         Vector3 textPosition = topLeft + cameraDirection * textDistanceOffset;
 
         textInfo.transform.position = textPosition;
 
-        // Orientar el texto hacia la c·mara
+        // Orientar el texto hacia la c√°mara
         Vector3 directionToCamera = cam.transform.position - textInfo.transform.position;
         textInfo.transform.rotation = Quaternion.LookRotation(-directionToCamera);
 
@@ -178,59 +300,53 @@ public class DrawBbox : MonoBehaviour
         textInfo.overflowMode = TextOverflowModes.Overflow;
         textInfo.enableWordWrapping = false;
         textInfo.alignment = TextAlignmentOptions.Center;
-
-        // Mejorar legibilidad
         textInfo.fontStyle = FontStyles.Bold;
         textInfo.outlineWidth = 0.1f;
         textInfo.outlineColor = Color.black;
+
+        // CR√çTICO: Aplicar la visibilidad seg√∫n showObjectInformation
+        textInfo.gameObject.SetActive(showObjectInformation);
+
+        Debug.Log($"[DrawBbox NavigationUI] Texto configurado para {objData.name} - Visible: {showObjectInformation}");
     }
 
-    // Calcular ancho de lÌnea basado en distancia
     float CalculateLineWidth(float distance)
     {
         if (distance <= 1f)
         {
-            // Para distancias muy cercanas, usar lÌneas m·s delgadas
-            float factor = distance / 1f; // 0 a 1
+            float factor = distance / 1f;
             return Mathf.Lerp(minLineWidth, baseLineWidth * 0.7f, factor);
         }
         else if (distance <= 5f)
         {
-            // TransiciÛn gradual de 1m a 5m
-            float factor = (distance - 1f) / 4f; // 0 a 1
+            float factor = (distance - 1f) / 4f;
             return Mathf.Lerp(baseLineWidth * 0.7f, baseLineWidth, factor);
         }
         else
         {
-            // Para distancias lejanas, lÌneas m·s gruesas para visibilidad
-            float factor = Mathf.Clamp01((distance - 5f) / 15f); // 0 a 1 para 5m-20m
+            float factor = Mathf.Clamp01((distance - 5f) / 15f);
             return Mathf.Lerp(baseLineWidth, maxLineWidth, factor);
         }
     }
 
-    // Calcular escala de texto mejorada
     float CalculateTextScale(float distance)
     {
         if (distance <= 1f)
         {
-            // Para objetos muy cercanos, escala m·s conservadora
-            return minTextSize * (0.8f + 0.2f * distance); // 80% a 100% del mÌnimo
+            return minTextSize * (0.8f + 0.2f * distance);
         }
         else if (distance <= 3f)
         {
-            // TransiciÛn suave de 1m a 3m
             float factor = (distance - 1f) / 2f;
             return Mathf.Lerp(minTextSize, baseTextSize, factor);
         }
         else if (distance <= 10f)
         {
-            // Rango normal de 3m a 10m
             float factor = (distance - 3f) / 7f;
             return Mathf.Lerp(baseTextSize, baseTextSize * 1.2f, factor);
         }
         else
         {
-            // Distancias lejanas, texto m·s grande para visibilidad
             float factor = Mathf.Clamp01((distance - 10f) / 10f);
             return Mathf.Lerp(baseTextSize * 1.2f, maxTextSize, factor);
         }
@@ -240,18 +356,18 @@ public class DrawBbox : MonoBehaviour
     {
         switch (className?.ToLower())
         {
-            case "person": return new Color(1f, 1f, 0f, 0.9f);        // Amarillo
-            case "car": return new Color(1f, 0f, 0f, 0.9f);           // Rojo
-            case "bicycle": return new Color(0f, 1f, 0f, 0.9f);       // Verde
-            case "motorcycle": return new Color(1f, 0.5f, 0f, 0.9f);  // Naranja
-            case "bus": return new Color(0f, 0f, 1f, 0.9f);           // Azul
-            case "truck": return new Color(0.5f, 0f, 0.5f, 0.9f);     // P˙rpura
-            case "dog": return new Color(0f, 1f, 1f, 0.9f);           // Cian
-            case "cat": return new Color(1f, 0f, 1f, 0.9f);           // Magenta
-            case "bird": return new Color(1f, 1f, 0.5f, 0.9f);        // Amarillo claro
-            case "traffic light": return new Color(0.5f, 1f, 0.5f, 0.9f); // Verde claro
-            case "stop sign": return new Color(0.8f, 0.2f, 0.2f, 0.9f);   // Rojo oscuro
-            default: return new Color(1f, 1f, 1f, 0.9f);              // Blanco por defecto
+            case "person": return new Color(1f, 1f, 0f, 0.9f);
+            case "car": return new Color(1f, 0f, 0f, 0.9f);
+            case "bicycle": return new Color(0f, 1f, 0f, 0.9f);
+            case "motorcycle": return new Color(1f, 0.5f, 0f, 0.9f);
+            case "bus": return new Color(0f, 0f, 1f, 0.9f);
+            case "truck": return new Color(0.5f, 0f, 0.5f, 0.9f);
+            case "dog": return new Color(0f, 1f, 1f, 0.9f);
+            case "cat": return new Color(1f, 0f, 1f, 0.9f);
+            case "bird": return new Color(1f, 1f, 0.5f, 0.9f);
+            case "traffic light": return new Color(0.5f, 1f, 0.5f, 0.9f);
+            case "stop sign": return new Color(0.8f, 0.2f, 0.2f, 0.9f);
+            default: return new Color(1f, 1f, 1f, 0.9f);
         }
     }
 
@@ -265,6 +381,40 @@ public class DrawBbox : MonoBehaviour
             }
         }
         activeBBoxes.Clear();
+    }
+
+    void UpdateTextVisibilityInActiveBBoxes()
+    {
+        Debug.Log($"[DrawBbox NavigationUI] Actualizando visibilidad del texto en {activeBBoxes.Count} cajas - showObjectInformation: {showObjectInformation}");
+
+        foreach (GameObject bbox in activeBBoxes)
+        {
+            if (bbox != null)
+            {
+                TextMeshPro textInfo = bbox.GetComponentInChildren<TextMeshPro>();
+                if (textInfo != null)
+                {
+                    textInfo.gameObject.SetActive(showObjectInformation);
+                }
+            }
+        }
+    }
+
+    void UpdateLineVisibilityInActiveBBoxes()
+    {
+        Debug.Log($"[DrawBbox NavigationUI] Actualizando visibilidad de l√≠neas en {activeBBoxes.Count} cajas - showDrawBbox: {showDrawBbox}");
+
+        foreach (GameObject bbox in activeBBoxes)
+        {
+            if (bbox != null)
+            {
+                LineRenderer line = bbox.GetComponent<LineRenderer>();
+                if (line != null)
+                {
+                    line.enabled = showDrawBbox;
+                }
+            }
+        }
     }
 
     public void UpdateDetectionData(ObjectDetection newData)

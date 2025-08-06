@@ -1,0 +1,5 @@
+C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/Debug/72t5p445/arm64-v8a/CMakeFiles/edit_cache.dir
+C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/Debug/72t5p445/arm64-v8a/CMakeFiles/rebuild_cache.dir
+C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/Debug/72t5p445/arm64-v8a/GameActivity/CMakeFiles/game.dir
+C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/Debug/72t5p445/arm64-v8a/GameActivity/CMakeFiles/edit_cache.dir
+C:/Users/HP/source/repos/Unity/Tesis/Sistema_Navegacion_Interior_EPN/ProyectoTesis/.utmp/Debug/72t5p445/arm64-v8a/GameActivity/CMakeFiles/rebuild_cache.dir
