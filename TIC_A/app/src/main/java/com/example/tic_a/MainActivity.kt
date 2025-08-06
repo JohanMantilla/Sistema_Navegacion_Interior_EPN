@@ -31,6 +31,8 @@ import androidx.core.content.ContextCompat
 import com.example.tic_a.detection.ObjectDetector
 import com.example.tic_a.models.DetectedObject
 import com.example.tic_a.models.PerformanceMetrics
+import com.example.tic_a.comunication.SocketCommunication
+import com.example.tic_a.comunication.DataSerializer
 import org.json.JSONObject
 import java.util.concurrent.ExecutorService
 import java.util.concurrent.Executors
@@ -53,13 +55,25 @@ class MainActivity : AppCompatActivity() {
     private var objectDetector: ObjectDetector? = null
     private var isDetecting = false
 
+    // CONFIGURACIÓN DEL SERVIDOR
+    private var socketCommunication: SocketCommunication? = null
+    private val dataSerializer = DataSerializer()
+
+    private val SERVER_CONFIGS = mapOf(
+        "Local" to Pair("192.168.1.100", 8080),
+        "ngrok" to Pair("0.tcp.sa.ngrok.io", 11517),
+        "Production" to Pair("servidor.com", 8080)
+    )
+
+    private var currentServerConfig = "ngrok"
+
     // Configuration
     private val config = JSONObject().apply {
         put("confidence_threshold", 0.5)
         put("iou_threshold", 0.5)
         put("enable_communication", true)
-        put("server_address", "127.0.0.1")
-        put("server_port", 8080)
+        put("server_address", SERVER_CONFIGS[currentServerConfig]?.first ?: "127.0.0.1")
+        put("server_port", SERVER_CONFIGS[currentServerConfig]?.second ?: 8080)
         put("model_path", "yolov8n.tflite")
     }
 
@@ -76,6 +90,9 @@ class MainActivity : AppCompatActivity() {
         confidenceTextView = findViewById(R.id.confidence_text_view)
         startStopButton = findViewById(R.id.start_stop_button)
         modeSpinner = findViewById(R.id.mode_spinner)
+
+        // INICIALIZAR COMUNICACIÓN CON SERVIDOR
+        initializeSocketCommunication()
 
         // Set up confidence threshold slider
         confidenceSeekBar.max = 100
@@ -109,8 +126,12 @@ class MainActivity : AppCompatActivity() {
                 objectDetector?.updateConfig(config)
 
                 if (enableCommunication) {
-                    Toast.makeText(this@MainActivity, "Component B Integration Enabled", Toast.LENGTH_SHORT).show()
+                    // INICIAR CONEXIÓN CUANDO SE HABILITA
+                    socketCommunication?.start()
+                    Toast.makeText(this@MainActivity, "Component B Integration Enabled - Connecting to server...", Toast.LENGTH_SHORT).show()
                 } else {
+                    // CERRAR CONEXIÓN CUANDO SE DESHABILITA
+                    socketCommunication?.close()
                     Toast.makeText(this@MainActivity, "Camera Only Mode", Toast.LENGTH_SHORT).show()
                 }
             }
@@ -143,6 +164,33 @@ class MainActivity : AppCompatActivity() {
         }
     }
 
+    private fun initializeSocketCommunication() {
+        try {
+            val serverAddress = SERVER_CONFIGS[currentServerConfig]?.first ?: "127.0.0.1"
+            val serverPort = SERVER_CONFIGS[currentServerConfig]?.second ?: 8080
+
+            Log.d(TAG, "Initializing socket communication to $serverAddress:$serverPort")
+
+            socketCommunication = SocketCommunication(
+                serverAddress = serverAddress,
+                serverPort = serverPort,
+                messageCallback = { message ->
+                    // MANEJAR RESPUESTAS DEL SERVIDOR
+                    Log.d(TAG, "Server response: $message")
+                    runOnUiThread {
+                        Toast.makeText(this, "Server: $message", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            )
+
+            Log.d(TAG, "Socket communication initialized successfully")
+
+        } catch (e: Exception) {
+            Log.e(TAG, "Error initializing socket communication", e)
+            Toast.makeText(this, "Error connecting to server: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
     private fun initializeObjectDetector() {
         try {
             Log.d(TAG, "Initializing object detector...")
@@ -172,13 +220,17 @@ class MainActivity : AppCompatActivity() {
             ).apply {
                 Log.d(TAG, "ObjectDetector instance created")
 
-                // CORRECCIÓN: Pasar las dimensiones del modelo YOLO (640x640)
                 setOnDetectionResultListener { detectedObjects, processedFrame ->
                     Log.d(TAG, "Detection result received: ${detectedObjects.size} objects")
                     runOnUiThread {
                         updateObjectCount(detectedObjects.size)
-                        // Pasar las dimensiones correctas de la imagen procesada
                         overlayView.updateDetections(detectedObjects, Size(640, 640))
+                    }
+
+                    // ENVIAR DATOS AL SERVIDOR SI ESTÁ HABILITADO
+                    if (config.optBoolean("enable_communication", false) &&
+                        socketCommunication?.isConnected() == true) {
+                        sendDetectionDataToServer(detectedObjects)
                     }
                 }
 
@@ -186,6 +238,15 @@ class MainActivity : AppCompatActivity() {
                     Log.d(TAG, "Performance update: FPS=${metrics.fps}")
                     runOnUiThread {
                         updatePerformanceMetrics(metrics)
+                    }
+
+                    // ENVIAR MÉTRICAS AL SERVIDOR OCASIONALMENTE
+                    if (config.optBoolean("enable_communication", false) &&
+                        socketCommunication?.isConnected() == true) {
+                        // Enviar métricas cada 30 frames aproximadamente (1 vez por segundo a 30 FPS)
+                        if (System.currentTimeMillis() % 1000 < 50) {
+                            sendPerformanceDataToServer(metrics)
+                        }
                     }
                 }
             }
@@ -195,6 +256,28 @@ class MainActivity : AppCompatActivity() {
         } catch (e: Exception) {
             Log.e(TAG, "Error initializing object detector", e)
             Toast.makeText(this, "Error initializing detector: ${e.message}", Toast.LENGTH_LONG).show()
+        }
+    }
+
+    // Enviar datos de detección al servidor
+    private fun sendDetectionDataToServer(detectedObjects: List<DetectedObject>) {
+        try {
+            val jsonData = dataSerializer.serializeData(detectedObjects)
+            socketCommunication?.queueMessage(jsonData)
+            Log.d(TAG, "Detection data sent to server: ${detectedObjects.size} objects")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending detection data to server", e)
+        }
+    }
+
+    // Enviar métricas de rendimiento al servidor
+    private fun sendPerformanceDataToServer(metrics: PerformanceMetrics) {
+        try {
+            val jsonData = dataSerializer.serializeData(emptyList(), metrics)
+            socketCommunication?.queueMessage(jsonData)
+            Log.d(TAG, "Performance metrics sent to server: FPS=${metrics.fps}")
+        } catch (e: Exception) {
+            Log.e(TAG, "Error sending performance data to server", e)
         }
     }
 
@@ -221,7 +304,6 @@ class MainActivity : AppCompatActivity() {
                     it.setSurfaceProvider(previewView.surfaceProvider)
                 }
 
-            // Image analysis - CORRECCIÓN: Usar ResolutionSelector en lugar de setTargetResolution
             val resolutionSelector = ResolutionSelector.Builder()
                 .setResolutionStrategy(
                     ResolutionStrategy(
@@ -266,7 +348,10 @@ class MainActivity : AppCompatActivity() {
         try {
             Log.d(TAG, "Processing image: ${imageProxy.width}x${imageProxy.height}, format: ${imageProxy.format}")
 
-            val bitmap = imageProxyToBitmap(imageProxy)
+            val bitmap = imageProxyToBitmap(imageProxy)?.let {
+                Bitmap.createScaledBitmap(it, 640, 640, true)
+            }
+
             if (bitmap != null) {
                 Log.d(TAG, "Bitmap created successfully: ${bitmap.width}x${bitmap.height}")
                 objectDetector?.processFrame(bitmap)
@@ -282,7 +367,6 @@ class MainActivity : AppCompatActivity() {
 
     private fun imageProxyToBitmap(image: ImageProxy): Bitmap? {
         return try {
-            // CORRECCIÓN: Convertir YUV a RGB apropiadamente
             val yBuffer = image.planes[0].buffer
             val uBuffer = image.planes[1].buffer
             val vBuffer = image.planes[2].buffer
@@ -293,12 +377,10 @@ class MainActivity : AppCompatActivity() {
 
             val nv21 = ByteArray(ySize + uSize + vSize)
 
-            // Copiar Y, U, V planes
             yBuffer.get(nv21, 0, ySize)
             vBuffer.get(nv21, ySize, vSize)
             uBuffer.get(nv21, ySize + vSize, uSize)
 
-            // Convertir YUV a RGB
             val yuvImage = android.graphics.YuvImage(nv21, android.graphics.ImageFormat.NV21,
                 image.width, image.height, null)
             val out = java.io.ByteArrayOutputStream()
@@ -307,7 +389,6 @@ class MainActivity : AppCompatActivity() {
 
             val bitmap = android.graphics.BitmapFactory.decodeByteArray(imageBytes, 0, imageBytes.size)
 
-            // Rotar si es necesario
             val rotationDegrees = image.imageInfo.rotationDegrees
             if (rotationDegrees != 0) {
                 val matrix = android.graphics.Matrix()
@@ -318,7 +399,6 @@ class MainActivity : AppCompatActivity() {
             bitmap
         } catch (e: Exception) {
             Log.e(TAG, "Error converting YUV to RGB, falling back to grayscale", e)
-            // Fallback a escala de grises mejorado
             try {
                 val yPlane = image.planes[0]
                 val yBuffer = yPlane.buffer
@@ -413,6 +493,8 @@ class MainActivity : AppCompatActivity() {
     override fun onDestroy() {
         super.onDestroy()
         try {
+            // CERRAR CONEXIÓN AL SERVIDOR
+            socketCommunication?.close()
             objectDetector?.release()
             cameraExecutor.shutdown()
         } catch (e: Exception) {
@@ -427,8 +509,7 @@ class MainActivity : AppCompatActivity() {
     }
 }
 
-// Custom overlay view for drawing bounding boxes
-// OverlayView corregido - Escalado apropiado de bounding boxes
+// OverlayView sin cambios
 class OverlayView @JvmOverloads constructor(
     context: android.content.Context,
     attrs: android.util.AttributeSet? = null,
@@ -436,7 +517,7 @@ class OverlayView @JvmOverloads constructor(
 ) : View(context, attrs, defStyleAttr) {
 
     private var detectedObjects: List<DetectedObject> = emptyList()
-    private var imageWidth: Int = 640  // Dimensiones de la imagen procesada por YOLO
+    private var imageWidth: Int = 640
     private var imageHeight: Int = 640
 
     private val paint = Paint().apply {
@@ -457,15 +538,11 @@ class OverlayView @JvmOverloads constructor(
 
     fun updateDetections(objects: List<DetectedObject>, processingImageSize: Size? = null) {
         detectedObjects = objects
-
-        // Actualizar dimensiones de la imagen procesada si se proporcionan
         processingImageSize?.let {
             imageWidth = it.width
             imageHeight = it.height
         }
-
         Log.d("OverlayView", "Updating overlay with ${objects.size} detections")
-        Log.d("OverlayView", "Image dimensions: ${imageWidth}x${imageHeight}, View: ${width}x${height}")
         invalidate()
     }
 
@@ -483,20 +560,15 @@ class OverlayView @JvmOverloads constructor(
 
         canvas.let { c ->
             detectedObjects.forEach { obj ->
-                // CORRECCIÓN: Calcular escalado basado en las dimensiones reales de la imagen procesada
                 val scaleX = width.toFloat() / imageWidth.toFloat()
                 val scaleY = height.toFloat() / imageHeight.toFloat()
-
-                // Usar el mismo factor de escala para mantener aspect ratio
                 val scale = minOf(scaleX, scaleY)
 
-                // Calcular offset para centrar la imagen escalada
                 val scaledWidth = imageWidth * scale
                 val scaledHeight = imageHeight * scale
                 val offsetX = (width - scaledWidth) / 2f
                 val offsetY = (height - scaledHeight) / 2f
 
-                // CORRECCIÓN: Aplicar escalado y offset correctos
                 val rect = RectF(
                     obj.boundingBox.left * scale + offsetX,
                     obj.boundingBox.top * scale + offsetY,
@@ -504,24 +576,18 @@ class OverlayView @JvmOverloads constructor(
                     obj.boundingBox.bottom * scale + offsetY
                 )
 
-                // Asegurar que el rectángulo esté dentro de los límites del canvas
                 rect.intersect(0f, 0f, width.toFloat(), height.toFloat())
 
-                // Dibujar solo si el rectángulo es válido
                 if (rect.width() > 0 && rect.height() > 0) {
-                    // Dibujar rectángulo de detección
                     c.drawRect(rect, paint)
 
-                    // Preparar texto de etiqueta
                     val label = "${obj.classLabel} (${String.format("%.2f", obj.confidence)})"
                     val textBounds = android.graphics.Rect()
                     textPaint.getTextBounds(label, 0, label.length, textBounds)
 
-                    // Posición del texto
                     val textX = rect.left
                     val textY = maxOf(rect.top - 10f, textBounds.height().toFloat() + 10f)
 
-                    // Dibujar fondo del texto
                     c.drawRect(
                         textX - 5f,
                         textY - textBounds.height() - 5f,
@@ -530,13 +596,11 @@ class OverlayView @JvmOverloads constructor(
                         backgroundPaint
                     )
 
-                    // Dibujar texto de etiqueta
                     c.drawText(label, textX, textY, textPaint)
 
-                    // Información adicional (solo si hay movimiento real)
                     var offsetY = 35f
 
-                    if (obj.speed > 5f) { // Solo mostrar si hay movimiento significativo
+                    if (obj.speed > 5f) {
                         val speedText = "Speed: ${String.format("%.1f", obj.speed)} px/s"
                         c.drawRect(
                             rect.left - 5f,
@@ -560,8 +624,6 @@ class OverlayView @JvmOverloads constructor(
                         )
                         c.drawText(distanceText, rect.left, rect.bottom + offsetY, textPaint)
                     }
-
-                    Log.d("OverlayView", "Drew ${obj.classLabel} at scaled rect [${rect.left}, ${rect.top}, ${rect.right}, ${rect.bottom}]")
                 }
             }
         }

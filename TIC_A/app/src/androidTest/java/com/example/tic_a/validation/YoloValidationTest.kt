@@ -24,7 +24,7 @@ class YoloValidationTest {
         yoloDetector = YoloDetector(
             context = context,
             modelPath = "yolov8n.tflite",
-            confThreshold = 0.25f,
+            confThreshold = 0.65f,
             iouThreshold = 0.45f
         )
     }
